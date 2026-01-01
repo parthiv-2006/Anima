@@ -1,20 +1,43 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PetStage from './components/PetStage.jsx';
 import QuestCard from './components/QuestCard.jsx';
+import HabitForm from './components/HabitForm.jsx';
 import EvolutionEvent from './components/EvolutionEvent.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
 import { usePetStore } from './state/petStore.js';
-
-const sampleHabits = [
-  { id: 'h1', name: 'Read 10 pages', statCategory: 'INT', difficulty: 2, reward: { xp: 15, int: 10 } },
-  { id: 'h2', name: 'Gym Session', statCategory: 'STR', difficulty: 3, reward: { xp: 20, str: 12 } },
-  { id: 'h3', name: 'Meditate 10m', statCategory: 'SPI', difficulty: 1, reward: { xp: 10, spi: 8 } }
-];
+import { habits as habitsApi, pet as petApi } from './services/api.js';
 
 function App() {
   const [showEvolution, setShowEvolution] = useState(false);
+  const [showHabitForm, setShowHabitForm] = useState(false);
+  const [habits, setHabits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
   const pet = usePetStore((s) => s.pet);
-  const updatePet = usePetStore((s) => s.updatePet);
+  const setPet = usePetStore((s) => s.updatePet);
+
+  // Fetch initial data
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function loadData() {
+    try {
+      setLoading(true);
+      const [habitsData, petData] = await Promise.all([
+        habitsApi.getAll(),
+        petApi.get()
+      ]);
+      setHabits(habitsData);
+      setPet(petData);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to load data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const dominant = useMemo(() => {
     const stats = pet.stats;
@@ -23,20 +46,97 @@ function App() {
     return entries[0]?.[0] || 'str';
   }, [pet.stats]);
 
-  const handleHabitComplete = (habit) => {
-    updatePet({
-      stats: {
-        str: pet.stats.str + (habit.reward.str || 0),
-        int: pet.stats.int + (habit.reward.int || 0),
-        spi: pet.stats.spi + (habit.reward.spi || 0)
-      },
-      totalXp: pet.totalXp + habit.reward.xp
-    });
-
-    if (pet.totalXp + habit.reward.xp >= 120) {
-      setShowEvolution(true);
+  async function handleHabitCreate(habitData) {
+    try {
+      const updatedHabits = await habitsApi.create(habitData);
+      setHabits(updatedHabits);
+      setShowHabitForm(false);
+    } catch (err) {
+      alert(`Failed to create habit: ${err.message}`);
     }
-  };
+  }
+
+  async function handleHabitComplete(habit) {
+    try {
+      // Optimistic update
+      setHabits((prev) =>
+        prev.map((h) => (h._id === habit._id ? { ...h, isCompletedToday: true } : h))
+      );
+
+      const response = await habitsApi.complete(habit._id);
+      setHabits(response.habits);
+      setPet(response.pet);
+
+      // Check for evolution
+      if (response.pet.totalXp >= 100 && pet.stage === 1) {
+        setShowEvolution(true);
+      } else if (response.pet.totalXp >= 500 && pet.stage === 2) {
+        setShowEvolution(true);
+      }
+    } catch (err) {
+      // Revert optimistic update
+      setHabits((prev) =>
+        prev.map((h) => (h._id === habit._id ? { ...h, isCompletedToday: false } : h))
+      );
+      alert(`Failed to complete habit: ${err.message}`);
+    }
+  }
+
+  async function handleHabitReset(habit) {
+    try {
+      const response = await habitsApi.reset(habit._id);
+      setHabits(response.habits);
+      setPet(response.pet);
+    } catch (err) {
+      alert(`Failed to reset habit: ${err.message}`);
+    }
+  }
+
+  async function handleHabitDelete(habit) {
+    try {
+      const response = await habitsApi.delete(habit._id);
+      setHabits(response.habits);
+    } catch (err) {
+      alert(`Failed to delete habit: ${err.message}`);
+    }
+  }
+
+  // Group habits by category
+  const habitsByCategory = useMemo(() => {
+    return habits.reduce((acc, habit) => {
+      if (!acc[habit.statCategory]) acc[habit.statCategory] = [];
+      acc[habit.statCategory].push(habit);
+      return acc;
+    }, {});
+  }, [habits]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-display flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500 mx-auto mb-4" />
+          <p className="text-slate-400">Loading your quest...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-display flex items-center justify-center">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 max-w-md">
+          <h2 className="text-xl font-semibold text-red-400 mb-2">Error</h2>
+          <p className="text-slate-300">{error}</p>
+          <button
+            onClick={loadData}
+            className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-300"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-display">
@@ -59,15 +159,56 @@ function App() {
             <PetStage petType={pet.species} evolutionStage={pet.stage} totalXp={pet.totalXp} />
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Quest Board</h2>
-              <span className="text-xs text-slate-400">Optimistic UI demo</span>
-            </div>
-            <div className="grid gap-3">
-              {sampleHabits.map((habit) => (
-                <QuestCard key={habit.id} habit={habit} onComplete={handleHabitComplete} />
-              ))}
+          <div className="space-y-4">
+            {showHabitForm && (
+              <HabitForm onSubmit={handleHabitCreate} onCancel={() => setShowHabitForm(false)} />
+            )}
+
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Quest Board</h2>
+                <button
+                  onClick={() => setShowHabitForm(!showHabitForm)}
+                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 rounded-lg text-sm text-amber-300 font-semibold transition"
+                >
+                  + New Quest
+                </button>
+              </div>
+
+              {habits.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-slate-400 mb-2">No quests yet!</p>
+                  <p className="text-sm text-slate-500">Create your first habit to start your journey.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {['STR', 'INT', 'SPI'].map((category) => {
+                    const categoryHabits = habitsByCategory[category] || [];
+                    if (categoryHabits.length === 0) return null;
+
+                    return (
+                      <div key={category}>
+                        <h3 className="text-sm uppercase tracking-[0.2em] text-slate-400 mb-2">
+                          {category === 'STR' && '⚔️ Strength Quests'}
+                          {category === 'INT' && '📚 Intellect Quests'}
+                          {category === 'SPI' && '🌿 Spirit Quests'}
+                        </h3>
+                        <div className="grid gap-3">
+                          {categoryHabits.map((habit) => (
+                            <QuestCard
+                              key={habit._id}
+                              habit={habit}
+                              onComplete={handleHabitComplete}
+                              onReset={handleHabitReset}
+                              onDelete={handleHabitDelete}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </section>
