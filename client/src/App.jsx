@@ -4,10 +4,14 @@ import QuestCard from './components/QuestCard.jsx';
 import HabitForm from './components/HabitForm.jsx';
 import EvolutionEvent from './components/EvolutionEvent.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
+import AuthForm from './components/AuthForm.jsx';
 import { usePetStore } from './state/petStore.js';
+import { useAuthStore } from './state/authStore.js';
 import { habits as habitsApi, pet as petApi } from './services/api.js';
 
 function App() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
   const [showEvolution, setShowEvolution] = useState(false);
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [habits, setHabits] = useState([]);
@@ -16,6 +20,11 @@ function App() {
   
   const pet = usePetStore((s) => s.pet);
   const setPet = usePetStore((s) => s.updatePet);
+
+  // Show auth form if not authenticated
+  if (!isAuthenticated) {
+    return <AuthForm />;
+  }
 
   // Fetch initial data
   useEffect(() => {
@@ -147,10 +156,21 @@ function App() {
             <h1 className="text-3xl font-bold mt-2">Tamagotchi for Productivity</h1>
             <p className="text-slate-400">Complete quests to evolve your pet.</p>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-slate-400">Dominant stat</p>
-            <p className="text-lg font-semibold uppercase">{dominant}</p>
-            <p className="text-xs text-slate-500">XP: {pet.totalXp}</p>
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <p className="text-xs text-slate-400">Dominant stat</p>
+              <p className="text-lg font-semibold uppercase">{dominant}</p>
+              <p className="text-xs text-slate-500">XP: {pet.totalXp}</p>
+            </div>
+            <button
+              onClick={() => {
+                clearAuth();
+                localStorage.removeItem('token');
+              }}
+              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm font-semibold transition"
+            >
+              Logout
+            </button>
           </div>
         </header>
 
