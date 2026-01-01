@@ -37,10 +37,17 @@ export default function AuthForm() {
         });
       }
 
-      // Store token and user data
+      console.log('Auth response:', response);
+      
+      // Store token in localStorage first
       localStorage.setItem('token', response.token);
+      console.log('Token stored in localStorage');
+      
+      // Then update Zustand store - this should trigger App re-render
       setAuthData(response.token, response.user);
+      console.log('Auth store updated, isAuthenticated should now be true');
     } catch (err) {
+      console.error('Auth error:', err);
       setError(err.message);
     } finally {
       setLoading(false);

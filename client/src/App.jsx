@@ -10,7 +10,9 @@ import { useAuthStore } from './state/authStore.js';
 import { habits as habitsApi, pet as petApi } from './services/api.js';
 
 function App() {
+  // ========== ALL HOOKS FIRST (unconditional) ==========
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const [showEvolution, setShowEvolution] = useState(false);
   const [showHabitForm, setShowHabitForm] = useState(false);
@@ -21,16 +23,52 @@ function App() {
   const pet = usePetStore((s) => s.pet);
   const setPet = usePetStore((s) => s.updatePet);
 
+  // Load data when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('User authenticated, loading data...');
+      loadData();
+    }
+  }, [isAuthenticated]);
+
+  const dominant = useMemo(() => {
+    const stats = pet.stats;
+    const entries = Object.entries(stats);
+    entries.sort((a, b) => b[1] - a[1]);
+    return entries[0]?.[0] || 'str';
+  }, [pet.stats]);
+
+  const habitsByCategory = useMemo(() => {
+    return habits.reduce((acc, habit) => {
+      if (!acc[habit.statCategory]) acc[habit.statCategory] = [];
+      acc[habit.statCategory].push(habit);
+      return acc;
+    }, {});
+  }, [habits]);
+
+  console.log('🔄 App render - hydrated:', isHydrated, 'authenticated:', isAuthenticated, 'loading:', loading);
+
+  // ========== CONDITIONAL RENDERING (after all hooks) ==========
+  
+  // Wait for hydration before rendering
+  if (!isHydrated) {
+    console.log('⏳ Waiting for hydration...');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-display flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500" />
+      </div>
+    );
+  }
+
   // Show auth form if not authenticated
   if (!isAuthenticated) {
+    console.log('❌ Not authenticated, showing AuthForm');
     return <AuthForm />;
   }
 
-  // Fetch initial data
-  useEffect(() => {
-    loadData();
-  }, []);
+  console.log('✅ Authenticated, showing dashboard');
 
+  // ========== ASYNC FUNCTIONS ==========
   async function loadData() {
     try {
       setLoading(true);
@@ -47,13 +85,6 @@ function App() {
       setLoading(false);
     }
   }
-
-  const dominant = useMemo(() => {
-    const stats = pet.stats;
-    const entries = Object.entries(stats);
-    entries.sort((a, b) => b[1] - a[1]);
-    return entries[0]?.[0] || 'str';
-  }, [pet.stats]);
 
   async function handleHabitCreate(habitData) {
     try {
@@ -109,15 +140,6 @@ function App() {
       alert(`Failed to delete habit: ${err.message}`);
     }
   }
-
-  // Group habits by category
-  const habitsByCategory = useMemo(() => {
-    return habits.reduce((acc, habit) => {
-      if (!acc[habit.statCategory]) acc[habit.statCategory] = [];
-      acc[habit.statCategory].push(habit);
-      return acc;
-    }, {});
-  }, [habits]);
 
   if (loading) {
     return (
