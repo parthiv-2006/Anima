@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "packages/client",
-    "packages/server"
+    "client",
+    "server"
   ],
   "scripts": {
     "dev": "npm run dev:server",
-    "dev:client": "npm run dev -w packages/client",
-    "dev:server": "npm run dev -w packages/server",
-    "build": "npm run build -w packages/client",
-    "lint": "npm run lint -w packages/client"
+    "dev:client": "npm run dev -w client",
+    "dev:server": "npm run dev -w server",
+    "build": "npm run build -w client",
+    "lint": "npm run lint -w client"
   }
 }
