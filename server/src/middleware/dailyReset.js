@@ -17,16 +17,29 @@ export async function dailyReset(req, res, next) {
     const currentDate = new Date(now).setHours(0, 0, 0, 0);
 
     if (currentDate > lastLoginDate) {
-      // New day detected - reset all habits
-      user.habits.forEach((habit) => {
-        if (habit.isCompletedToday) {
-          // Reset completion but keep streak (they completed yesterday)
+      // Check for freeze streak protection
+      const hasFreezeProtection = user.freezeProtectionUntil && 
+        new Date(user.freezeProtectionUntil) > new Date();
+      
+      if (hasFreezeProtection) {
+        // Protected from streak breaks, just reset completion status
+        user.habits.forEach((habit) => {
           habit.isCompletedToday = false;
-        } else if (habit.streak > 0) {
-          // Habit was NOT completed yesterday, break streak
-          habit.streak = 0;
-        }
-      });
+        });
+        // Clear the protection after use
+        user.freezeProtectionUntil = null;
+      } else {
+        // Normal reset - streaks can break
+        user.habits.forEach((habit) => {
+          if (habit.isCompletedToday) {
+            // Reset completion but keep streak (they completed yesterday)
+            habit.isCompletedToday = false;
+          } else if (habit.streak > 0) {
+            // Habit was NOT completed yesterday, break streak
+            habit.streak = 0;
+          }
+        });
+      }
 
       user.lastLogin = now;
       await user.save();

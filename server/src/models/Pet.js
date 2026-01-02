@@ -4,6 +4,7 @@ const PetSchema = new mongoose.Schema({
   nickname: { type: String, default: 'Nova' },
   species: { type: String, enum: ['EMBER', 'AQUA', 'TERRA'], required: true },
   stage: { type: Number, default: 1 },
+  hp: { type: Number, default: 100, min: 0, max: 100 },
   stats: {
     str: { type: Number, default: 0 },
     int: { type: Number, default: 0 },

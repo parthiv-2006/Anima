@@ -30,9 +30,14 @@ export async function completeHabit(req, res) {
   habit.streak += 1;
   user.pet.totalXp += 10 * habit.difficulty;
   user.pet.stats[habit.statCategory.toLowerCase()] += 5 * habit.difficulty;
+  
+  // Award coins based on difficulty and streak bonus
+  const baseCoins = 5 * habit.difficulty;
+  const streakBonus = Math.min(habit.streak, 7); // Max 7 coin bonus from streak
+  user.coins += baseCoins + streakBonus;
 
   await user.save();
-  return res.json({ habits: user.habits, pet: user.pet });
+  return res.json({ habits: user.habits, pet: user.pet, coins: user.coins });
 }
 
 export async function resetHabit(req, res) {

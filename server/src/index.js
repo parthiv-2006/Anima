@@ -6,6 +6,7 @@ import { connectDb } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import petRoutes from './routes/petRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
+import shopRoutes from './routes/shopRoutes.js';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/pet', petRoutes);
 app.use('/api/habits', habitRoutes);
+app.use('/api/shop', shopRoutes);
 
 const PORT = process.env.PORT || 5000;
 
