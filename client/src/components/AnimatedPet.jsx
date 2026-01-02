@@ -103,8 +103,21 @@ export default function AnimatedPet({ species, totalXp, stage }) {
     }
   };
 
+  const getBackgroundGradient = () => {
+    switch (species) {
+      case 'EMBER':
+        return 'bg-gradient-to-br from-orange-500/10 via-red-500/5 to-amber-500/10';
+      case 'AQUA':
+        return 'bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-sky-500/10';
+      case 'TERRA':
+        return 'bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-lime-500/10';
+      default:
+        return 'bg-gradient-to-br from-slate-500/10 via-slate-400/5 to-slate-500/10';
+    }
+  };
+
   return (
-    <div className="relative w-full h-64 flex items-center justify-center">
+    <div className={`relative w-full h-80 flex items-center justify-center rounded-2xl ${getBackgroundGradient()}`}>
       <AnimatePresence>
         {showZzz && (
           <>
@@ -130,7 +143,7 @@ export default function AnimatedPet({ species, totalXp, stage }) {
 
       <motion.div className="relative" variants={getAnimationVariants()} animate="animate">
         <motion.div
-          className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-black/20 rounded-full blur-md"
+          className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-40 h-10 bg-black/20 rounded-full blur-md"
           animate={{
             scale: animationState === ANIMATION_STATES.BOUNCE ? [1, 0.8, 1, 0.9, 1] : [1, 0.95, 1],
             opacity: [0.2, 0.3, 0.2]
@@ -160,7 +173,7 @@ export default function AnimatedPet({ species, totalXp, stage }) {
           <motion.img
             src={PET_IMAGES[species]}
             alt={`${species} pet`}
-            className="w-48 h-48 object-contain relative z-10 drop-shadow-2xl"
+            className="w-64 h-64 object-contain relative z-10 drop-shadow-2xl"
             style={{
               filter: isSleeping ? 'brightness(0.7) grayscale(0.3)' : 'brightness(1)',
               imageRendering: 'crisp-edges'

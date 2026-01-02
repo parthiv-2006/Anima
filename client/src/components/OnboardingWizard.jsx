@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../state/authStore.js';
-import { habits as habitsApi } from '../services/api.js';
+import { habits as habitsApi, pet as petApi } from '../services/api.js';
 
 const STARTER_PETS = [
   {
@@ -71,8 +71,11 @@ export default function OnboardingWizard({ onComplete }) {
     // Simulate initialization delay
     await new Promise(resolve => setTimeout(resolve, 2500));
     
-    // Create initial quests
     try {
+      // Update pet species first
+      await petApi.update({ species: selectedPet });
+      
+      // Create initial quests
       for (const quest of quests) {
         await habitsApi.create({
           name: quest.name,
@@ -81,7 +84,7 @@ export default function OnboardingWizard({ onComplete }) {
         });
       }
     } catch (err) {
-      console.error('Failed to create initial quests:', err);
+      console.error('Failed to initialize:', err);
     }
     
     onComplete?.();
@@ -169,6 +172,8 @@ export default function OnboardingWizard({ onComplete }) {
                     }`}
                   >
                     <div className="bg-white/5 backdrop-blur p-6 border border-white/10">
+                      {/* Background gradient */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${pet.color} opacity-5`} />
                       {/* Glow effect when selected */}
                       {selectedPet === pet.species && (
                         <motion.div
@@ -184,7 +189,7 @@ export default function OnboardingWizard({ onComplete }) {
                       <div className="relative">
                         {/* Pet Image */}
                         <motion.div
-                          className="w-full h-48 flex items-center justify-center mb-4"
+                          className="w-full h-56 flex items-center justify-center mb-4"
                           animate={{
                             scale: selectedPet === pet.species ? 1.1 : 1
                           }}
@@ -193,7 +198,7 @@ export default function OnboardingWizard({ onComplete }) {
                           <img
                             src={pet.image}
                             alt={pet.name}
-                            className="w-40 h-40 object-contain drop-shadow-2xl"
+                            className="w-48 h-48 object-contain drop-shadow-2xl"
                             style={{ imageRendering: 'crisp-edges' }}
                           />
                         </motion.div>
@@ -427,7 +432,7 @@ export default function OnboardingWizard({ onComplete }) {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1, rotate: 360 }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
-                className="w-32 h-32 mx-auto mb-8"
+                className="w-48 h-48 mx-auto mb-8"
               >
                 <img
                   src={STARTER_PETS.find(p => p.species === selectedPet)?.image}

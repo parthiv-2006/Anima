@@ -2,6 +2,18 @@ import { motion } from 'framer-motion';
 import AnimatedPet from './AnimatedPet.jsx';
 
 function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0 }) {
+  const getBackgroundColor = () => {
+    switch (petType) {
+      case 'EMBER':
+        return 'from-orange-500/5 to-red-500/5';
+      case 'AQUA':
+        return 'from-blue-500/5 to-cyan-500/5';
+      case 'TERRA':
+        return 'from-green-500/5 to-emerald-500/5';
+      default:
+        return 'from-slate-500/5 to-slate-400/5';
+    }
+  };
   const nextThreshold = evolutionStage === 1 ? 100 : 500;
   const progress = Math.min((totalXp / nextThreshold) * 100, 100);
 
@@ -20,7 +32,7 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0 }) {
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+        <div className={`absolute inset-0 bg-gradient-to-br ${getBackgroundColor()}`} />
         <div className="p-6 flex items-center justify-center relative">
           <AnimatedPet species={petType} totalXp={totalXp} stage={evolutionStage} />
         </div>

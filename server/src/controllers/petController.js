@@ -27,9 +27,10 @@ export async function updatePet(req, res) {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const { stats = {}, totalXp } = req.body;
+    const { stats = {}, totalXp, species } = req.body;
     user.pet.stats = { ...user.pet.stats, ...stats };
     if (typeof totalXp === 'number') user.pet.totalXp = totalXp;
+    if (species && ['EMBER', 'AQUA', 'TERRA'].includes(species)) user.pet.species = species;
 
     calculateEvolution(user.pet);
     await user.save();
