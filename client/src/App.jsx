@@ -5,6 +5,7 @@ import HabitForm from './components/HabitForm.jsx';
 import EvolutionEvent from './components/EvolutionEvent.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
 import AuthForm from './components/AuthForm.jsx';
+import OnboardingWizard from './components/OnboardingWizard.jsx';
 import { usePetStore } from './state/petStore.js';
 import { useAuthStore } from './state/authStore.js';
 import { habits as habitsApi, pet as petApi } from './services/api.js';
@@ -13,12 +14,14 @@ function App() {
   // ========== ALL HOOKS FIRST (unconditional) ==========
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isHydrated = useAuthStore((s) => s.isHydrated);
+  const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const [showEvolution, setShowEvolution] = useState(false);
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   
   const pet = usePetStore((s) => s.pet);
   const setPet = usePetStore((s) => s.updatePet);
@@ -30,6 +33,22 @@ function App() {
       loadData();
     }
   }, [isAuthenticated]);
+
+  // Check if user needs onboarding
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Check if user just registered (has no habits yet)
+      const checkOnboarding = async () => {
+        try {
+          const userHabits = await habitsApi.getAll();
+          setNeedsOnboarding(userHabits.length === 0);
+        } catch (err) {
+          console.error('Failed to check onboarding status:', err);
+        }
+      };
+      checkOnboarding();
+    }
+  }, [isAuthenticated, user]);
 
   const dominant = useMemo(() => {
     const stats = pet.stats;
@@ -64,6 +83,19 @@ function App() {
   if (!isAuthenticated) {
     console.log('❌ Not authenticated, showing AuthForm');
     return <AuthForm />;
+  }
+
+  // Show onboarding wizard if needed
+  if (needsOnboarding) {
+    console.log('🎮 Showing onboarding wizard');
+    return (
+      <OnboardingWizard
+        onComplete={() => {
+          setNeedsOnboarding(false);
+          loadData();
+        }}
+      />
+    );
   }
 
   console.log('✅ Authenticated, showing dashboard');

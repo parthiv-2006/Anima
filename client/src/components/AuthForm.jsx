@@ -3,19 +3,12 @@ import { motion } from 'framer-motion';
 import { auth } from '../services/api.js';
 import { useAuthStore } from '../state/authStore.js';
 
-const SPECIES_OPTIONS = [
-  { value: 'EMBER', label: 'Ember Spirit', emoji: '🔥', color: 'from-amber-500 to-red-500' },
-  { value: 'AQUA', label: 'Aqua Wisp', emoji: '💧', color: 'from-sky-500 to-blue-500' },
-  { value: 'TERRA', label: 'Terra Golem', emoji: '🌿', color: 'from-emerald-500 to-lime-500' }
-];
-
 export default function AuthForm() {
   const [isRegister, setIsRegister] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: '',
-    species: 'EMBER'
+    password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -134,34 +127,6 @@ export default function AuthForm() {
                 required
               />
             </div>
-
-            {isRegister && (
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Choose Your Starter Pet
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {SPECIES_OPTIONS.map((species) => (
-                    <button
-                      key={species.value}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, species: species.value })}
-                      className={`relative p-4 rounded-lg border transition ${
-                        formData.species === species.value
-                          ? 'border-white/30 bg-white/10'
-                          : 'border-white/10 bg-white/5 hover:border-white/20'
-                      }`}
-                    >
-                      <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${species.color} opacity-20`} />
-                      <div className="relative text-center">
-                        <p className="text-3xl mb-1">{species.emoji}</p>
-                        <p className="text-xs font-semibold">{species.label}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {error && (
               <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
