@@ -1,31 +1,7 @@
 import { motion } from 'framer-motion';
-import Lottie from 'lottie-react';
-import emberBaby from '../lotties/ember-baby.json';
-import emberTeen from '../lotties/ember-teen.json';
-import emberAdult from '../lotties/ember-adult.json';
-import aquaBaby from '../lotties/aqua-baby.json';
-import terraBaby from '../lotties/terra-baby.json';
-
-const petAnimations = {
-  EMBER: {
-    1: emberBaby,
-    2: emberTeen,
-    3: emberAdult
-  },
-  AQUA: {
-    1: aquaBaby,
-    2: aquaBaby,
-    3: aquaBaby
-  },
-  TERRA: {
-    1: terraBaby,
-    2: terraBaby,
-    3: terraBaby
-  }
-};
+import AnimatedPet from './AnimatedPet.jsx';
 
 function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0 }) {
-  const animationData = petAnimations[petType]?.[evolutionStage] || petAnimations.EMBER[1];
   const nextThreshold = evolutionStage === 1 ? 100 : 500;
   const progress = Math.min((totalXp / nextThreshold) * 100, 100);
 
@@ -41,17 +17,12 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0 }) {
 
       <motion.div
         className="relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden"
-        animate={{ scale: [1, 1.02, 1] }}
-        transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.3 }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-        <div className="p-6 flex items-center justify-center">
-          <Lottie
-            animationData={animationData}
-            loop
-            autoplay
-            style={{ width: 240, height: 240 }}
-          />
+        <div className="p-6 flex items-center justify-center relative">
+          <AnimatedPet species={petType} totalXp={totalXp} stage={evolutionStage} />
         </div>
       </motion.div>
 
