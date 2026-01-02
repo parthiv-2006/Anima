@@ -77,3 +77,25 @@ export const pet = {
     method: 'POST'
   })
 };
+
+// ============ Shop APIs ============
+export const shop = {
+  getItems: () => fetchWithAuth('/shop/items'),
+
+  purchase: (itemId, quantity = 1) => fetchWithAuth('/shop/purchase', {
+    method: 'POST',
+    body: JSON.stringify({ itemId, quantity })
+  }),
+
+  useItem: (itemId) => fetchWithAuth('/shop/use', {
+    method: 'POST',
+    body: JSON.stringify({ itemId })
+  }),
+
+  setBackground: (backgroundId) => fetchWithAuth('/shop/background', {
+    method: 'POST',
+    body: JSON.stringify({ backgroundId })
+  }),
+
+  getInventory: () => fetchWithAuth('/shop/inventory')
+};

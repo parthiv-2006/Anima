@@ -4,12 +4,13 @@ import QuestCard from './components/QuestCard.jsx';
 import HabitForm from './components/HabitForm.jsx';
 import EvolutionEvent from './components/EvolutionEvent.jsx';
 import FocusTimer from './components/FocusTimer.jsx';
+import ItemShop from './components/ItemShop.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
 import AuthForm from './components/AuthForm.jsx';
 import OnboardingWizard from './components/OnboardingWizard.jsx';
 import { usePetStore } from './state/petStore.js';
 import { useAuthStore } from './state/authStore.js';
-import { habits as habitsApi, pet as petApi } from './services/api.js';
+import { habits as habitsApi, pet as petApi, shop as shopApi } from './services/api.js';
 
 function App() {
   // ========== ALL HOOKS FIRST (unconditional) ==========
@@ -24,6 +25,10 @@ function App() {
   const [error, setError] = useState('');
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [petState, setPetState] = useState(null);
+  const [showShop, setShowShop] = useState(false);
+  const [coins, setCoins] = useState(0);
+  const [inventory, setInventory] = useState(null);
+  const [activeBackground, setActiveBackground] = useState('default');
   
   const pet = usePetStore((s) => s.pet);
   const setPet = usePetStore((s) => s.updatePet);
@@ -106,12 +111,16 @@ function App() {
   async function loadData() {
     try {
       setLoading(true);
-      const [habitsData, petData] = await Promise.all([
+      const [habitsData, petData, inventoryData] = await Promise.all([
         habitsApi.getAll(),
-        petApi.get()
+        petApi.get(),
+        shopApi.getInventory()
       ]);
       setHabits(habitsData);
       setPet(petData);
+      setCoins(inventoryData.coins);
+      setInventory(inventoryData.inventory);
+      setActiveBackground(inventoryData.inventory?.activeBackground || 'default');
     } catch (err) {
       setError(err.message);
       console.error('Failed to load data:', err);
@@ -140,6 +149,7 @@ function App() {
       const response = await habitsApi.complete(habit._id);
       setHabits(response.habits);
       setPet(response.pet);
+      if (response.coins !== undefined) setCoins(response.coins);
 
       // Check for evolution
       if (response.pet.totalXp >= 100 && pet.stage === 1) {
@@ -213,6 +223,14 @@ function App() {
             <p className="text-slate-400">Complete quests to evolve your pet.</p>
           </div>
           <div className="flex items-center gap-6">
+            <button
+              onClick={() => setShowShop(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 rounded-lg text-amber-300 font-semibold transition"
+            >
+              <span>🪙</span>
+              <span>{coins}</span>
+              <span className="text-xs">Shop</span>
+            </button>
             <div className="text-right">
               <p className="text-xs text-slate-400">Dominant stat</p>
               <p className="text-lg font-semibold uppercase">{dominant}</p>
@@ -232,7 +250,14 @@ function App() {
 
         <section className="grid lg:grid-cols-2 gap-6 items-start">
           <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur">
-            <PetStage petType={pet.species} evolutionStage={pet.stage} totalXp={pet.totalXp} petState={petState} />
+            <PetStage 
+              petType={pet.species} 
+              evolutionStage={pet.stage} 
+              totalXp={pet.totalXp} 
+              petState={petState}
+              background={activeBackground}
+              hp={pet.hp}
+            />
           </div>
 
           <div className="space-y-4">
@@ -320,6 +345,19 @@ function App() {
           species: pet.species,
           stage: pet.stage + 1,
           evolutionPath: `${pet.species}_${dominant.toUpperCase()}`
+        }}
+      />
+
+      <ItemShop
+        isOpen={showShop}
+        onClose={() => setShowShop(false)}
+        coins={coins}
+        inventory={inventory}
+        onPurchase={loadData}
+        onUseItem={loadData}
+        onSetBackground={(bg) => {
+          setActiveBackground(bg);
+          loadData();
         }}
       />
     </div>
