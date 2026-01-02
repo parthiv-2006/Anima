@@ -3,6 +3,7 @@ import PetStage from './components/PetStage.jsx';
 import QuestCard from './components/QuestCard.jsx';
 import HabitForm from './components/HabitForm.jsx';
 import EvolutionEvent from './components/EvolutionEvent.jsx';
+import FocusTimer from './components/FocusTimer.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
 import AuthForm from './components/AuthForm.jsx';
 import OnboardingWizard from './components/OnboardingWizard.jsx';
@@ -22,6 +23,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [petState, setPetState] = useState(null);
   
   const pet = usePetStore((s) => s.pet);
   const setPet = usePetStore((s) => s.updatePet);
@@ -230,7 +232,7 @@ function App() {
 
         <section className="grid lg:grid-cols-2 gap-6 items-start">
           <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur">
-            <PetStage petType={pet.species} evolutionStage={pet.stage} totalXp={pet.totalXp} />
+            <PetStage petType={pet.species} evolutionStage={pet.stage} totalXp={pet.totalXp} petState={petState} />
           </div>
 
           <div className="space-y-4">
@@ -288,6 +290,15 @@ function App() {
         </section>
 
         <section className="grid lg:grid-cols-3 gap-6">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur">
+            <FocusTimer 
+              onTimerStart={(state) => setPetState(state)} 
+              onTimerEnd={() => {
+                setPetState(null);
+                loadData(); // Refresh data to show new XP
+              }} 
+            />
+          </div>
           <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur">
             <HabitRadar stats={pet.stats} />
           </div>

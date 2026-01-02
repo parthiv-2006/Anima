@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import AnimatedPet from './AnimatedPet.jsx';
 
-function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0 }) {
+function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState }) {
   const getBackgroundColor = () => {
     switch (petType) {
       case 'EMBER':
@@ -34,7 +34,7 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0 }) {
       >
         <div className={`absolute inset-0 bg-gradient-to-br ${getBackgroundColor()}`} />
         <div className="p-6 flex items-center justify-center relative">
-          <AnimatedPet species={petType} totalXp={totalXp} stage={evolutionStage} />
+          <AnimatedPet species={petType} totalXp={totalXp} stage={evolutionStage} forcedState={petState} />
         </div>
       </motion.div>
 

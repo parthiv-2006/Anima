@@ -12,15 +12,24 @@ const ANIMATION_STATES = {
   BOUNCE: 'bounce',
   SLEEP: 'sleep',
   WIGGLE: 'wiggle',
-  FLOAT: 'float'
+  FLOAT: 'float',
+  TRAINING: 'training'
 };
 
-export default function AnimatedPet({ species, totalXp, stage }) {
+export default function AnimatedPet({ species, totalXp, stage, forcedState }) {
   const [animationState, setAnimationState] = useState(ANIMATION_STATES.IDLE);
   const [isSleeping, setIsSleeping] = useState(false);
   const [showZzz, setShowZzz] = useState(false);
 
   useEffect(() => {
+    // If forced state (like training), use it and don't cycle
+    if (forcedState) {
+      setAnimationState(forcedState);
+      setIsSleeping(false);
+      setShowZzz(false);
+      return;
+    }
+
     const changeAnimation = () => {
       const animations = [
         { state: ANIMATION_STATES.IDLE, duration: 4000, weight: 40 },
@@ -51,7 +60,7 @@ export default function AnimatedPet({ species, totalXp, stage }) {
 
     const timeout = setTimeout(changeAnimation, 2000);
     return () => clearTimeout(timeout);
-  }, []);
+  }, [forcedState]);
 
   const getAnimationVariants = () => {
     switch (animationState) {
@@ -158,8 +167,15 @@ export default function AnimatedPet({ species, totalXp, stage }) {
         <motion.div className="relative">
           <motion.div
             className="absolute inset-0 rounded-full blur-2xl opacity-50"
-            animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.9, 1.1, 0.9] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ 
+              opacity: animationState === ANIMATION_STATES.TRAINING ? [0.4, 0.8, 0.4] : [0.3, 0.6, 0.3], 
+              scale: animationState === ANIMATION_STATES.TRAINING ? [0.95, 1.15, 0.95] : [0.9, 1.1, 0.9] 
+            }}
+            transition={{ 
+              duration: animationState === ANIMATION_STATES.TRAINING ? 1.5 : 3, 
+              repeat: Infinity, 
+              ease: 'easeInOut' 
+            }}
             style={{
               background:
                 species === 'EMBER'
@@ -201,6 +217,33 @@ export default function AnimatedPet({ species, totalXp, stage }) {
                   transition={{ duration: 1.5, delay: i * 0.1 }}
                 >
                   ✨
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Training particles */}
+          {animationState === ANIMATION_STATES.TRAINING && (
+            <motion.div className="absolute inset-0 pointer-events-none overflow-visible">
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={`train-${i}`}
+                  className="absolute text-2xl"
+                  initial={{ x: '50%', y: '50%', opacity: 0 }}
+                  animate={{
+                    x: `${50 + Math.cos((i / 6) * Math.PI * 2) * 80}%`,
+                    y: `${50 + Math.sin((i / 6) * Math.PI * 2) * 80}%`,
+                    opacity: [0, 0.8, 0],
+                    scale: [0.5, 1, 0.5]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                    ease: 'easeInOut'
+                  }}
+                >
+                  💫
                 </motion.div>
               ))}
             </motion.div>
