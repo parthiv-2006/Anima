@@ -56,17 +56,23 @@ export async function resetHabit(req, res) {
   user.pet.totalXp -= 10 * habit.difficulty;
   user.pet.stats[habit.statCategory.toLowerCase()] -= 5 * habit.difficulty;
   
-  // Ensure stats don't go negative
+  // Revert coins (same calculation as in complete)
+  const baseCoins = 5 * habit.difficulty;
+  const streakBonus = Math.min(habit.streak, 7);
+  user.coins -= (baseCoins + streakBonus);
+  
+  // Ensure stats and coins don't go negative
   user.pet.totalXp = Math.max(0, user.pet.totalXp);
   user.pet.stats.str = Math.max(0, user.pet.stats.str);
   user.pet.stats.int = Math.max(0, user.pet.stats.int);
   user.pet.stats.spi = Math.max(0, user.pet.stats.spi);
+  user.coins = Math.max(0, user.coins);
 
   habit.isCompletedToday = false;
   habit.streak = Math.max(0, habit.streak - 1);
 
   await user.save();
-  return res.json({ habits: user.habits, pet: user.pet });
+  return res.json({ habits: user.habits, pet: user.pet, coins: user.coins });
 }
 
 export async function deleteHabit(req, res) {
