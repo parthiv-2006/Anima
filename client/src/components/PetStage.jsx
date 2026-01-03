@@ -123,9 +123,9 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
         {/* Ambient particles/glow effect */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(251,191,36,0.1),transparent_50%)]" />
         
-        <div className="relative h-full min-h-[400px] flex items-center justify-center pt-16 pb-40">
-          {/* Scaled up pet display */}
-          <div className="transform scale-125">
+        <div className="relative h-full min-h-[350px] flex items-center justify-center pt-20 pb-44">
+          {/* Significantly scaled up pet display */}
+          <div className="transform scale-150 md:scale-[1.75]">
             <AnimatedPet species={petType} totalXp={totalXp} stage={evolutionStage} forcedState={petState} />
           </div>
           

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { habits as habitsApi } from '../services/api.js';
 import confetti from 'canvas-confetti';
@@ -16,6 +16,8 @@ const STAT_OPTIONS = [
   { value: 'SPI', label: 'Spirit', emoji: '🌿', color: 'text-green-400', gradient: 'from-green-500 to-emerald-500' }
 ];
 
+const TIMER_STORAGE_KEY = 'focusTimerSession';
+
 export default function FocusTimer({ onTimerStart, onTimerEnd }) {
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -23,16 +25,108 @@ export default function FocusTimer({ onTimerStart, onTimerEnd }) {
   const [timeLeft, setTimeLeft] = useState(25 * 60); // seconds
   const [selectedStat, setSelectedStat] = useState('INT');
   const [showSetup, setShowSetup] = useState(false);
+  const [wasResumed, setWasResumed] = useState(false);
   const intervalRef = useRef(null);
   const audioRef = useRef(null);
 
+  // Handle timer completion
+  const handleTimerComplete = useCallback(async () => {
+    setIsActive(false);
+    setTimeLeft(0);
+    
+    // Clear localStorage session
+    localStorage.removeItem(TIMER_STORAGE_KEY);
+    
+    // Confetti celebration
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: selectedStat === 'INT' ? ['#3b82f6', '#06b6d4'] : ['#10b981', '#34d399']
+    });
+
+    try {
+      // Create a temporary "Focus Session" habit to award XP
+      const habitData = {
+        name: `Focus Session (${duration} min)`,
+        statCategory: selectedStat,
+        difficulty: Math.min(3, Math.ceil(duration / 20))
+      };
+      
+      const habit = await habitsApi.create(habitData);
+      await habitsApi.complete(habit._id);
+      await habitsApi.delete(habit._id);
+      
+      onTimerEnd?.();
+    } catch (err) {
+      console.error('Failed to award focus session XP:', err);
+      onTimerEnd?.();
+    }
+    
+    // Reset for next session
+    setTimeLeft(duration * 60);
+  }, [duration, selectedStat, onTimerEnd]);
+
+  // Restore timer from localStorage on mount
   useEffect(() => {
+    const savedSession = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        const now = Date.now();
+        const remaining = Math.floor((session.targetEndTime - now) / 1000);
+        
+        if (remaining > 0) {
+          // Timer is still active - resume it
+          setDuration(session.duration);
+          setSelectedStat(session.selectedStat);
+          setTimeLeft(remaining);
+          setIsActive(true);
+          setIsPaused(session.isPaused || false);
+          setWasResumed(true);
+          onTimerStart?.('training');
+        } else {
+          // Timer has completed while away - handle completion
+          setDuration(session.duration);
+          setSelectedStat(session.selectedStat);
+          handleTimerComplete();
+        }
+      } catch (err) {
+        console.error('Failed to restore timer session:', err);
+        localStorage.removeItem(TIMER_STORAGE_KEY);
+      }
+    }
+    
     // Cleanup on unmount
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
 
+  // Save timer state to localStorage whenever it changes
+  useEffect(() => {
+    if (isActive && !isPaused) {
+      const targetEndTime = Date.now() + (timeLeft * 1000);
+      const session = {
+        targetEndTime,
+        duration,
+        selectedStat,
+        isPaused: false
+      };
+      localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(session));
+    } else if (isActive && isPaused) {
+      // Save paused state with current timeLeft
+      const session = {
+        targetEndTime: Date.now() + (timeLeft * 1000),
+        duration,
+        selectedStat,
+        isPaused: true
+      };
+      localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(session));
+    }
+  }, [isActive, isPaused, timeLeft, duration, selectedStat]);
+
+  // Timer countdown effect
   useEffect(() => {
     if (isActive && !isPaused && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
@@ -51,12 +145,23 @@ export default function FocusTimer({ onTimerStart, onTimerEnd }) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isActive, isPaused, timeLeft]);
+  }, [isActive, isPaused, timeLeft, handleTimerComplete]);
 
   const startTimer = () => {
+    const targetEndTime = Date.now() + (duration * 60 * 1000);
+    const session = {
+      targetEndTime,
+      duration,
+      selectedStat,
+      isPaused: false
+    };
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(session));
+    
+    setTimeLeft(duration * 60);
     setIsActive(true);
     setIsPaused(false);
     setShowSetup(false);
+    setWasResumed(false);
     onTimerStart?.('training');
   };
 
@@ -65,51 +170,12 @@ export default function FocusTimer({ onTimerStart, onTimerEnd }) {
   };
 
   const stopTimer = () => {
+    localStorage.removeItem(TIMER_STORAGE_KEY);
     setIsActive(false);
     setIsPaused(false);
     setTimeLeft(duration * 60);
+    setWasResumed(false);
     onTimerEnd?.();
-  };
-
-  const handleTimerComplete = async () => {
-    setIsActive(false);
-    setTimeLeft(0);
-    
-    // Play success sound (optional - would need audio file)
-    // audioRef.current?.play();
-    
-    // Confetti celebration
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: selectedStat === 'INT' ? ['#3b82f6', '#06b6d4'] : ['#10b981', '#34d399']
-    });
-
-    // Award XP based on duration
-    const xpBonus = Math.floor(duration * 2); // 2 XP per minute
-    
-    try {
-      // Create a temporary "Focus Session" habit to award XP
-      const habitData = {
-        name: `Focus Session (${duration} min)`,
-        statCategory: selectedStat,
-        difficulty: Math.min(3, Math.ceil(duration / 20)) // Scale difficulty by duration
-      };
-      
-      // In a real scenario, you'd have a dedicated focus session endpoint
-      // For now, we complete it immediately to get the XP
-      const habit = await habitsApi.create(habitData);
-      await habitsApi.complete(habit._id);
-      await habitsApi.delete(habit._id); // Clean up the temporary habit
-      
-      onTimerEnd?.();
-    } catch (err) {
-      console.error('Failed to award focus session XP:', err);
-    }
-    
-    // Reset for next session
-    setTimeLeft(duration * 60);
   };
 
   const formatTime = (seconds) => {
@@ -256,7 +322,7 @@ export default function FocusTimer({ onTimerStart, onTimerEnd }) {
               {formatTime(timeLeft)}
             </motion.div>
             <p className="text-sm text-slate-400 mt-2">
-              {isActive && !isPaused ? '🎯 Stay focused!' : isActive && isPaused ? 'Paused' : 'Ready to focus?'}
+              {isActive && !isPaused ? '🎯 Stay focused!' : isActive && isPaused ? 'Paused' : wasResumed ? '⏳ Session resumed!' : 'Ready to focus?'}
             </p>
             {isActive && (
               <motion.div
