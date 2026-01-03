@@ -171,6 +171,7 @@ function App() {
       const response = await habitsApi.reset(habit._id);
       setHabits(response.habits);
       setPet(response.pet);
+      if (response.coins !== undefined) setCoins(response.coins);
     } catch (err) {
       alert(`Failed to reset habit: ${err.message}`);
     }
@@ -227,8 +228,8 @@ function App() {
               onClick={() => setShowShop(true)}
               className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 rounded-lg text-amber-300 font-semibold transition"
             >
-              <span>🪙</span>
-              <span>{coins}</span>
+              <span className="text-xl">🪙</span>
+              <span className="text-lg">{coins}</span>
               <span className="text-xs">Shop</span>
             </button>
             <div className="text-right">

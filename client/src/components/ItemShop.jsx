@@ -151,7 +151,7 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-2 mt-6 items-center">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -166,6 +166,15 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                   {tab.label}
                 </button>
               ))}
+              {activeTab === 'background' && inventory?.activeBackground !== 'default' && (
+                <button
+                  onClick={() => handleSetBackground('default')}
+                  className="ml-auto px-4 py-2 bg-slate-700/50 hover:bg-slate-700/70 border border-slate-600/50 rounded-lg text-slate-300 text-sm font-semibold transition flex items-center gap-2"
+                >
+                  <span>🏠</span>
+                  <span>Reset to Default</span>
+                </button>
+              )}
             </div>
           </div>
 

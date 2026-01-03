@@ -149,8 +149,8 @@ export async function setBackground(req, res) {
     
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Check if user owns the background
-    if (!user.inventory.backgrounds.includes(backgroundId)) {
+    // Allow 'default' to be set without ownership check
+    if (backgroundId !== 'default' && !user.inventory.backgrounds.includes(backgroundId)) {
       return res.status(400).json({ message: 'Background not owned' });
     }
 
@@ -158,7 +158,7 @@ export async function setBackground(req, res) {
     await user.save();
 
     return res.json({
-      message: 'Background updated!',
+      message: backgroundId === 'default' ? 'Reset to default background!' : 'Background updated!',
       activeBackground: user.inventory.activeBackground
     });
   } catch (err) {
