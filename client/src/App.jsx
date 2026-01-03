@@ -258,6 +258,7 @@ function App() {
               petState={petState}
               background={activeBackground}
               hp={pet.hp}
+              petStats={pet.stats}
             />
           </div>
 
