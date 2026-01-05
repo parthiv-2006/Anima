@@ -5,15 +5,15 @@ import AnimatedPet from './AnimatedPet.jsx';
 import MiniTimer from './MiniTimer.jsx';
 import { usePetStore } from '../state/petStore.js';
 
-// Background gradient styles (matching shop system)
+// Background gradient styles (matching shop system, darker for ambient mode)
 const BACKGROUND_STYLES = {
-  default: { gradient: 'from-slate-800/50 to-slate-900/50', name: 'Default' },
-  dojo: { gradient: 'from-red-900/40 to-orange-900/40', name: 'Dojo Arena' },
-  library: { gradient: 'from-blue-900/40 to-indigo-900/40', name: 'Ancient Library' },
-  forest: { gradient: 'from-green-900/40 to-emerald-900/40', name: 'Mystic Forest' },
-  volcano: { gradient: 'from-orange-900/40 to-red-950/40', name: 'Volcanic Lair' },
-  ocean: { gradient: 'from-cyan-900/40 to-blue-950/40', name: 'Ocean Depths' },
-  mountain: { gradient: 'from-stone-800/40 to-slate-900/40', name: 'Mountain Peak' }
+  default: { gradient: 'from-slate-900/80 to-black/90', name: 'Default' },
+  dojo: { gradient: 'from-red-950/70 to-black/90', name: 'Dojo Arena' },
+  library: { gradient: 'from-blue-950/70 to-black/90', name: 'Ancient Library' },
+  forest: { gradient: 'from-green-950/70 to-black/90', name: 'Mystic Forest' },
+  volcano: { gradient: 'from-orange-950/70 to-black/90', name: 'Volcanic Lair' },
+  ocean: { gradient: 'from-cyan-950/70 to-black/90', name: 'Ocean Depths' },
+  mountain: { gradient: 'from-stone-900/70 to-black/90', name: 'Mountain Peak' }
 };
 
 const AmbientMode = ({ onExit, currentBackground = 'default', timerState = null }) => {
@@ -43,6 +43,9 @@ const AmbientMode = ({ onExit, currentBackground = 'default', timerState = null 
       >
         {/* Full-screen dynamic background */}
         <div className={`absolute inset-0 bg-gradient-to-br ${bgStyle.gradient}`}>
+          {/* Dim overlay for ambient effect */}
+          <div className="absolute inset-0 bg-black/40" />
+          
           {/* Ambient glow layers */}
           <div className="absolute inset-0 bg-gradient-radial from-amber-500/10 via-transparent to-transparent animate-pulse" 
                style={{ animationDuration: '4s' }} />
@@ -77,7 +80,9 @@ const AmbientMode = ({ onExit, currentBackground = 'default', timerState = null 
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="transform scale-[2.5]">
             <AnimatedPet 
-              pet={pet} 
+              species={pet.species}
+              totalXp={pet.totalXp}
+              stage={pet.stage}
               forcedState="sleep"
               ambientMode={true}
             />
