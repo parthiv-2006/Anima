@@ -5,7 +5,13 @@ const HabitSchema = new mongoose.Schema({
   statCategory: { type: String, enum: ['STR', 'INT', 'SPI'], required: true },
   difficulty: { type: Number, min: 1, max: 3, default: 1 },
   isCompletedToday: { type: Boolean, default: false },
-  streak: { type: Number, default: 0 }
+  streak: { type: Number, default: 0 },
+  completionLog: [{
+    date: { type: Date, required: true },
+    xpAwarded: { type: Number, required: true },
+    statCategory: { type: String, enum: ['STR', 'INT', 'SPI'], required: true },
+    difficulty: { type: Number, required: true }
+  }]
 });
 
 export default HabitSchema;

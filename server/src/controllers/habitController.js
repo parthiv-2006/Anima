@@ -26,15 +26,25 @@ export async function completeHabit(req, res) {
     return res.status(400).json({ message: 'Habit already completed today' });
   }
 
+  const xpAwarded = 10 * habit.difficulty;
+  
   habit.isCompletedToday = true;
   habit.streak += 1;
-  user.pet.totalXp += 10 * habit.difficulty;
+  user.pet.totalXp += xpAwarded;
   user.pet.stats[habit.statCategory.toLowerCase()] += 5 * habit.difficulty;
   
   // Award coins based on difficulty and streak bonus
   const baseCoins = 5 * habit.difficulty;
   const streakBonus = Math.min(habit.streak, 7); // Max 7 coin bonus from streak
   user.coins += baseCoins + streakBonus;
+
+  // Log completion for heatmap
+  habit.completionLog.push({
+    date: new Date(),
+    xpAwarded,
+    statCategory: habit.statCategory,
+    difficulty: habit.difficulty
+  });
 
   await user.save();
   return res.json({ habits: user.habits, pet: user.pet, coins: user.coins });
@@ -85,4 +95,61 @@ export async function deleteHabit(req, res) {
   habit.deleteOne();
   await user.save();
   return res.json({ habits: user.habits });
+}
+
+export async function getHabitHistory(req, res) {
+  const user = await User.findById(req.userId);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  const days = parseInt(req.query.days) || 365;
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - days);
+
+  // Aggregate completions by day
+  const dailyData = new Map();
+
+  // Initialize all days with zero values
+  for (let i = 0; i < days; i++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateKey = date.toISOString().split('T')[0];
+    dailyData.set(dateKey, {
+      date: dateKey,
+      totalXp: 0,
+      strXp: 0,
+      intXp: 0,
+      spiXp: 0,
+      habitsCompleted: 0
+    });
+  }
+
+  // Aggregate completion data from all habits
+  user.habits.forEach(habit => {
+    habit.completionLog.forEach(completion => {
+      const dateKey = new Date(completion.date).toISOString().split('T')[0];
+      
+      if (dailyData.has(dateKey)) {
+        const dayData = dailyData.get(dateKey);
+        dayData.totalXp += completion.xpAwarded;
+        dayData.habitsCompleted += 1;
+        
+        // Add XP to appropriate stat category
+        if (completion.statCategory === 'STR') {
+          dayData.strXp += completion.xpAwarded;
+        } else if (completion.statCategory === 'INT') {
+          dayData.intXp += completion.xpAwarded;
+        } else if (completion.statCategory === 'SPI') {
+          dayData.spiXp += completion.xpAwarded;
+        }
+      }
+    });
+  });
+
+  // Convert map to array and sort by date
+  const history = Array.from(dailyData.values()).sort((a, b) => 
+    new Date(a.date) - new Date(b.date)
+  );
+
+  return res.json(history);
 }
