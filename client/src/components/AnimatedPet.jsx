@@ -16,10 +16,69 @@ const ANIMATION_STATES = {
   TRAINING: 'training'
 };
 
-export default function AnimatedPet({ species, totalXp, stage, forcedState }) {
+// Ambient mode thought messages
+const AMBIENT_THOUGHTS = [
+  "Don't forget to drink water! 💧",
+  "You've been focused for a while... great work! 🎯",
+  "Taking breaks helps focus! ☕",
+  "Remember to stretch! 🧘",
+  "You're doing amazing! Keep it up! ✨",
+  "Hydration is key to productivity! 🚰",
+  "Time flies when you're in the zone! ⏰",
+  "Your dedication inspires me! 💪",
+  "Rest is productive too! 😴",
+  "Balance work with rest! ⚖️",
+  "You've got this! 🌟",
+  "Progress over perfection! 🎨"
+];
+
+export default function AnimatedPet({ species, totalXp, stage, forcedState, ambientMode = false }) {
   const [animationState, setAnimationState] = useState(ANIMATION_STATES.IDLE);
   const [isSleeping, setIsSleeping] = useState(false);
   const [showZzz, setShowZzz] = useState(false);
+  const [showThought, setShowThought] = useState(false);
+  const [currentThought, setCurrentThought] = useState('');
+
+  // Ambient mode thought bubble system
+  useEffect(() => {
+    if (!ambientMode) return;
+
+    const getRandomThought = () => {
+      return AMBIENT_THOUGHTS[Math.floor(Math.random() * AMBIENT_THOUGHTS.length)];
+    };
+
+    const showRandomThought = () => {
+      setCurrentThought(getRandomThought());
+      setShowThought(true);
+
+      // Hide thought after 5 seconds
+      setTimeout(() => {
+        setShowThought(false);
+      }, 5000);
+    };
+
+    // Show first thought after 30 seconds
+    const initialDelay = setTimeout(showRandomThought, 30000);
+
+    // Then show thoughts every 20-40 minutes (randomized)
+    const scheduleNextThought = () => {
+      const minDelay = 20 * 60 * 1000; // 20 minutes
+      const maxDelay = 40 * 60 * 1000; // 40 minutes
+      const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+      
+      return setTimeout(() => {
+        showRandomThought();
+        scheduleNextThought();
+      }, delay);
+    };
+
+    let thoughtInterval = scheduleNextThought();
+
+    return () => {
+      clearTimeout(initialDelay);
+      clearTimeout(thoughtInterval);
+    };
+  }, [ambientMode]);
 
   useEffect(() => {
     // If forced state (like training), use it and don't cycle
@@ -127,6 +186,29 @@ export default function AnimatedPet({ species, totalXp, stage, forcedState }) {
 
   return (
     <div className={`relative w-full h-80 flex items-center justify-center rounded-2xl ${getBackgroundGradient()}`}>
+      {/* Ambient Mode Thought Bubble */}
+      <AnimatePresence>
+        {showThought && ambientMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.8 }}
+            transition={{ duration: 0.4, ease: 'backOut' }}
+            className="absolute top-2 left-1/2 -translate-x-1/2 max-w-[320px] z-20"
+          >
+            {/* Speech bubble tail */}
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-amber-500/50" />
+            
+            {/* Speech bubble box */}
+            <div className="bg-slate-800/95 backdrop-blur-xl border-2 border-amber-500/50 rounded-xl p-4 shadow-2xl">
+              <p className="text-amber-100 text-base font-medium text-center leading-relaxed">
+                {currentThought}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {showZzz && (
           <>
