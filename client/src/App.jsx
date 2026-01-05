@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles } from 'lucide-react';
+import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor } from 'lucide-react';
 import PetStage from './components/PetStage.jsx';
 import QuestCard from './components/QuestCard.jsx';
 import HabitForm from './components/HabitForm.jsx';
@@ -8,6 +8,7 @@ import EvolutionEvent from './components/EvolutionEvent.jsx';
 import FocusTimer from './components/FocusTimer.jsx';
 import ItemShop from './components/ItemShop.jsx';
 import SettingsForm from './components/SettingsForm.jsx';
+import AmbientMode from './components/AmbientMode.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
 import AuthForm from './components/AuthForm.jsx';
 import OnboardingWizard from './components/OnboardingWizard.jsx';
@@ -97,6 +98,8 @@ function App() {
   const [showFocusTimer, setShowFocusTimer] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAmbientMode, setShowAmbientMode] = useState(false);
+  const [timerState, setTimerState] = useState(null);
   const [coins, setCoins] = useState(0);
   const [inventory, setInventory] = useState(null);
   const [activeBackground, setActiveBackground] = useState('default');
@@ -287,8 +290,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-display">
-      {/* Main 3-Column Grid Layout with max-width constraint */}
-      <div className="h-screen max-w-[1600px] mx-auto grid grid-cols-[72px_1fr_380px] gap-0">
+      {/* Main 3-Column Grid Layout */}
+      <div className="h-screen grid grid-cols-[80px_1fr_480px] gap-0">
         
         {/* ========== LEFT SIDEBAR - Glass Navigation Rail ========== */}
         <aside className="relative z-50 bg-slate-900/50 backdrop-blur-xl border-r border-white/5 flex flex-col items-center py-6 gap-2 overflow-visible">
@@ -313,6 +316,7 @@ function App() {
             <NavItem icon={Home} label="Dashboard" active={!showFocusTimer} onClick={() => setShowFocusTimer(false)} />
             <NavItem icon={ShoppingBag} label="Shop" onClick={() => setShowShop(true)} />
             <NavItem icon={Timer} label="Focus Timer" active={showFocusTimer} onClick={() => setShowFocusTimer(true)} />
+            <NavItem icon={Monitor} label="Ambient Mode" onClick={() => setShowAmbientMode(true)} />
             <NavItem icon={BookOpen} label="Guide" onClick={() => setShowInfoModal(true)} />
           </div>
           
@@ -352,7 +356,8 @@ function App() {
                     onTimerEnd={() => {
                       setPetState(null);
                       loadData();
-                    }} 
+                    }}
+                    onTimerStateChange={setTimerState}
                   />
                 </div>
               </motion.div>
@@ -615,6 +620,15 @@ function App() {
           loadData();
         }}
       />
+
+      {/* Ambient Mode - Full Screen Overlay */}
+      {showAmbientMode && (
+        <AmbientMode 
+          onExit={() => setShowAmbientMode(false)}
+          currentBackground={activeBackground}
+          timerState={timerState}
+        />
+      )}
     </div>
   );
 }
