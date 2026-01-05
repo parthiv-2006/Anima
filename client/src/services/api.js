@@ -46,6 +46,8 @@ export const auth = {
 export const habits = {
   getAll: () => fetchWithAuth('/habits'),
 
+  getHistory: (days = 365) => fetchWithAuth(`/habits/history?days=${days}`),
+
   create: (habitData) => fetchWithAuth('/habits', {
     method: 'POST',
     body: JSON.stringify(habitData)
