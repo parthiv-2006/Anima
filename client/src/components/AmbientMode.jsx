@@ -32,6 +32,11 @@ const AmbientMode = ({ onExit, currentBackground = 'default', timerState = null 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onExit]);
 
+  // Safety check - if pet is not loaded, don't render
+  if (!pet || !pet.species) {
+    return null;
+  }
+
   return (
     <AnimatePresence>
       <motion.div

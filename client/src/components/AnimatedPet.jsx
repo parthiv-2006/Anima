@@ -61,22 +61,27 @@ export default function AnimatedPet({ species, totalXp, stage, forcedState, ambi
     const initialDelay = setTimeout(showRandomThought, 30000);
 
     // Then show thoughts every 20-40 minutes (randomized)
+    const timeouts = [];
+    
     const scheduleNextThought = () => {
       const minDelay = 20 * 60 * 1000; // 20 minutes
       const maxDelay = 40 * 60 * 1000; // 40 minutes
       const delay = Math.random() * (maxDelay - minDelay) + minDelay;
       
-      return setTimeout(() => {
+      const timeout = setTimeout(() => {
         showRandomThought();
         scheduleNextThought();
       }, delay);
+      
+      timeouts.push(timeout);
+      return timeout;
     };
 
-    let thoughtInterval = scheduleNextThought();
+    scheduleNextThought();
 
     return () => {
       clearTimeout(initialDelay);
-      clearTimeout(thoughtInterval);
+      timeouts.forEach(timeout => clearTimeout(timeout));
     };
   }, [ambientMode]);
 
@@ -185,7 +190,9 @@ export default function AnimatedPet({ species, totalXp, stage, forcedState, ambi
   };
 
   return (
-    <div className={`relative w-full h-80 flex items-center justify-center rounded-2xl ${getBackgroundGradient()}`}>
+    <div className={`relative w-full flex items-center justify-center ${
+      ambientMode ? 'h-auto' : 'h-80 rounded-2xl'
+    } ${ambientMode ? '' : getBackgroundGradient()}`}>
       {/* Ambient Mode Thought Bubble */}
       <AnimatePresence>
         {showThought && ambientMode && (

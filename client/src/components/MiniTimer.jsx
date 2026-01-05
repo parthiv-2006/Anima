@@ -2,9 +2,24 @@ import { motion } from 'framer-motion';
 import { Timer } from 'lucide-react';
 
 const STAT_COLORS = {
-  STR: { gradient: 'from-red-500 to-orange-500', text: 'text-red-400' },
-  INT: { gradient: 'from-blue-500 to-cyan-500', text: 'text-blue-400' },
-  SPI: { gradient: 'from-green-500 to-emerald-500', text: 'text-green-400' }
+  STR: { 
+    gradient: 'from-red-500 to-orange-500', 
+    text: 'text-red-400',
+    startColor: '#ef4444',
+    endColor: '#f97316'
+  },
+  INT: { 
+    gradient: 'from-blue-500 to-cyan-500', 
+    text: 'text-blue-400',
+    startColor: '#3b82f6',
+    endColor: '#06b6d4'
+  },
+  SPI: { 
+    gradient: 'from-green-500 to-emerald-500', 
+    text: 'text-green-400',
+    startColor: '#22c55e',
+    endColor: '#10b981'
+  }
 };
 
 const MiniTimer = ({ isActive, timeLeft, duration, selectedStat = 'INT' }) => {
@@ -67,8 +82,8 @@ const MiniTimer = ({ isActive, timeLeft, duration, selectedStat = 'INT' }) => {
                   {/* Gradient definition */}
                   <defs>
                     <linearGradient id="miniTimerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" className={statColor.gradient.split(' ')[0].replace('from-', 'text-')} stopColor="currentColor" />
-                      <stop offset="100%" className={statColor.gradient.split(' ')[2].replace('to-', 'text-')} stopColor="currentColor" />
+                      <stop offset="0%" stopColor={statColor.startColor} />
+                      <stop offset="100%" stopColor={statColor.endColor} />
                     </linearGradient>
                   </defs>
                 </svg>
