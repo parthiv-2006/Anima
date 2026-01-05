@@ -9,6 +9,7 @@ import FocusTimer from './components/FocusTimer.jsx';
 import ItemShop from './components/ItemShop.jsx';
 import SettingsForm from './components/SettingsForm.jsx';
 import AmbientMode from './components/AmbientMode.jsx';
+import ProductivityHeatmap from './components/ProductivityHeatmap.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
 import AuthForm from './components/AuthForm.jsx';
 import OnboardingWizard from './components/OnboardingWizard.jsx';
@@ -461,6 +462,15 @@ function App() {
               <div className="h-48">
                 <HabitRadar stats={pet.stats} />
               </div>
+            </motion.div>
+
+            {/* Productivity Heatmap */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <ProductivityHeatmap />
             </motion.div>
 
             {/* Quest Board Header */}
