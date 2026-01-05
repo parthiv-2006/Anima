@@ -101,6 +101,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showAmbientMode, setShowAmbientMode] = useState(false);
   const [timerState, setTimerState] = useState(null);
+  const [heatmapRefreshKey, setHeatmapRefreshKey] = useState(0);
   const [coins, setCoins] = useState(0);
   const [inventory, setInventory] = useState(null);
   const [activeBackground, setActiveBackground] = useState('default');
@@ -225,6 +226,9 @@ function App() {
       setHabits(response.habits);
       setPet(response.pet);
       if (response.coins !== undefined) setCoins(response.coins);
+
+      // Refresh heatmap after completion
+      setHeatmapRefreshKey(prev => prev + 1);
 
       // Check for evolution
       if (response.pet.totalXp >= 100 && pet.stage === 1) {
@@ -470,7 +474,7 @@ function App() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <ProductivityHeatmap />
+              <ProductivityHeatmap refreshKey={heatmapRefreshKey} />
             </motion.div>
 
             {/* Quest Board Header */}

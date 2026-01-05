@@ -41,7 +41,7 @@ const FILTER_OPTIONS = [
   { value: 'SPI', label: 'Spirit', icon: '🌿', color: 'text-green-400' }
 ];
 
-function ProductivityHeatmap() {
+function ProductivityHeatmap({ refreshKey = 0 }) {
   const [historyData, setHistoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -49,10 +49,11 @@ function ProductivityHeatmap() {
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [refreshKey]);
 
   const loadHistory = async () => {
     try {
+      // Fetch full year (365 days)
       const data = await habitsApi.getHistory(365);
       setHistoryData(data);
     } catch (err) {
@@ -62,9 +63,10 @@ function ProductivityHeatmap() {
     }
   };
 
-  // Generate 365 day grid (53 weeks x 7 days)
+  // Generate grid for full current year (Jan 1 - Dec 31)
   const gridData = useMemo(() => {
-    const today = new Date();
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
     const grid = [];
     
     // Create data lookup map
@@ -73,10 +75,10 @@ function ProductivityHeatmap() {
       dataMap.set(day.date, day);
     });
 
-    // Generate 365 days working backwards from today
-    for (let i = 364; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
+    // Generate all 365 days of the year
+    for (let i = 0; i < 365; i++) {
+      const date = new Date(startOfYear);
+      date.setDate(date.getDate() + i);
       const dateKey = date.toISOString().split('T')[0];
       
       const dayData = dataMap.get(dateKey) || {
@@ -143,9 +145,8 @@ function ProductivityHeatmap() {
   };
 
   const getTrackingSinceDate = () => {
-    if (historyData.length === 0) return new Date().toISOString().split('T')[0];
-    const firstActivity = historyData.find(d => d.totalXp > 0);
-    return firstActivity ? firstActivity.date : new Date().toISOString().split('T')[0];
+    const currentYear = new Date().getFullYear();
+    return `${currentYear}-01-01`;
   };
 
   // Group days by week
@@ -199,8 +200,20 @@ function ProductivityHeatmap() {
         <h3 className="text-sm font-semibold text-white flex items-center gap-2">
           📊 Activity Heatmap
         </h3>
-        <div className="text-[10px] text-slate-400">
-          Tracking since {formatDate(getTrackingSinceDate())}
+        <div className="flex items-center gap-2">
+          <div className="text-[10px] text-slate-400">
+            Tracking since {formatDate(getTrackingSinceDate())}
+          </div>
+          <button
+            onClick={loadHistory}
+            disabled={loading}
+            className="p-1 text-slate-400 hover:text-white transition disabled:opacity-50"
+            title="Refresh heatmap"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -224,9 +237,9 @@ function ProductivityHeatmap() {
 
       {/* Heatmap Grid */}
       <div className="relative">
-        <div className="flex gap-[2px] overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
+        <div className="flex gap-[1.5px] justify-center overflow-hidden">
           {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="flex flex-col gap-[2px]">
+            <div key={weekIndex} className="flex flex-col gap-[1.5px]">
               {week.map((day, dayIndex) => (
                 <div key={`${weekIndex}-${dayIndex}`} className="relative">
                   {day ? (
@@ -236,11 +249,11 @@ function ProductivityHeatmap() {
                       transition={{ delay: weekIndex * 0.01 + dayIndex * 0.001 }}
                       onMouseEnter={() => setHoveredDay(day)}
                       onMouseLeave={() => setHoveredDay(null)}
-                      className={`w-[7px] h-[7px] rounded-sm ${getDayColor(day)} border border-white/5 cursor-pointer hover:border-white/30 transition-all`}
-                      whileHover={{ scale: 1.5 }}
+                      className={`w-[5px] h-[5px] rounded-[1px] ${getDayColor(day)} border border-white/5 cursor-pointer hover:border-white/30 transition-all`}
+                      whileHover={{ scale: 1.6 }}
                     />
                   ) : (
-                    <div className="w-[7px] h-[7px]" />
+                    <div className="w-[5px] h-[5px]" />
                   )}
                 </div>
               ))}

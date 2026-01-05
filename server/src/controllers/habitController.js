@@ -102,17 +102,16 @@ export async function getHabitHistory(req, res) {
   if (!user) return res.status(404).json({ message: 'User not found' });
 
   const days = parseInt(req.query.days) || 365;
-  const now = new Date();
-  const startDate = new Date(now);
-  startDate.setDate(startDate.getDate() - days);
+  const currentYear = new Date().getFullYear();
+  const startOfYear = new Date(currentYear, 0, 1); // January 1st of current year
 
   // Aggregate completions by day
   const dailyData = new Map();
 
-  // Initialize all days with zero values
+  // Initialize all days of the year with zero values
   for (let i = 0; i < days; i++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
+    const date = new Date(startOfYear);
+    date.setDate(date.getDate() + i);
     const dateKey = date.toISOString().split('T')[0];
     dailyData.set(dateKey, {
       date: dateKey,
