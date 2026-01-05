@@ -18,7 +18,7 @@ const STAT_OPTIONS = [
 
 const TIMER_STORAGE_KEY = 'focusTimerSession';
 
-export default function FocusTimer({ onTimerStart, onTimerEnd }) {
+export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChange }) {
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [duration, setDuration] = useState(25); // minutes
@@ -28,6 +28,18 @@ export default function FocusTimer({ onTimerStart, onTimerEnd }) {
   const [wasResumed, setWasResumed] = useState(false);
   const intervalRef = useRef(null);
   const audioRef = useRef(null);
+
+  // Expose timer state to parent component
+  useEffect(() => {
+    if (onTimerStateChange) {
+      onTimerStateChange({
+        isActive: isActive && !isPaused,
+        timeLeft,
+        duration,
+        selectedStat
+      });
+    }
+  }, [isActive, isPaused, timeLeft, duration, selectedStat, onTimerStateChange]);
 
   // Handle timer completion
   const handleTimerComplete = useCallback(async () => {
