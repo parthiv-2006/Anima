@@ -68,6 +68,12 @@ function ProductivityHeatmap({ refreshKey = 0 }) {
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1);
     const grid = [];
+    const getLocalDateKey = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
     
     // Create data lookup map
     const dataMap = new Map();
@@ -79,7 +85,7 @@ function ProductivityHeatmap({ refreshKey = 0 }) {
     for (let i = 0; i < 365; i++) {
       const date = new Date(startOfYear);
       date.setDate(date.getDate() + i);
-      const dateKey = date.toISOString().split('T')[0];
+      const dateKey = getLocalDateKey(date);
       
       const dayData = dataMap.get(dateKey) || {
         date: dateKey,
@@ -87,7 +93,10 @@ function ProductivityHeatmap({ refreshKey = 0 }) {
         strXp: 0,
         intXp: 0,
         spiXp: 0,
-        habitsCompleted: 0
+        habitsCompleted: 0,
+        strCount: 0,
+        intCount: 0,
+        spiCount: 0
       };
 
       grid.push({
@@ -149,7 +158,9 @@ function ProductivityHeatmap({ refreshKey = 0 }) {
   };
 
   const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
+    // Parse YYYY-MM-DD as a local date to avoid UTC shifting
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 

@@ -105,6 +105,14 @@ export async function getHabitHistory(req, res) {
   const currentYear = new Date().getFullYear();
   const startOfYear = new Date(currentYear, 0, 1); // January 1st of current year
 
+  // Helper: format a local date key as YYYY-MM-DD (no UTC shift)
+  const getLocalDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Aggregate completions by day
   const dailyData = new Map();
 
@@ -112,7 +120,7 @@ export async function getHabitHistory(req, res) {
   for (let i = 0; i < days; i++) {
     const date = new Date(startOfYear);
     date.setDate(date.getDate() + i);
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = getLocalDateKey(date);
     dailyData.set(dateKey, {
       date: dateKey,
       totalXp: 0,
@@ -129,7 +137,8 @@ export async function getHabitHistory(req, res) {
   // Aggregate completion data from all habits
   user.habits.forEach(habit => {
     habit.completionLog.forEach(completion => {
-      const dateKey = new Date(completion.date).toISOString().split('T')[0];
+      const completionDate = new Date(completion.date);
+      const dateKey = getLocalDateKey(completionDate);
       
       if (dailyData.has(dateKey)) {
         const dayData = dailyData.get(dateKey);
