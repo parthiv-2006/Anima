@@ -139,6 +139,15 @@ function ProductivityHeatmap({ refreshKey = 0 }) {
     }
   };
 
+  const getDayHabitsCount = (day) => {
+    switch (filter) {
+      case 'STR': return day.strCount || 0;
+      case 'INT': return day.intCount || 0;
+      case 'SPI': return day.spiCount || 0;
+      default: return day.habitsCompleted || 0;
+    }
+  };
+
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -270,7 +279,7 @@ function ProductivityHeatmap({ refreshKey = 0 }) {
           >
             <div className="font-semibold text-white mb-1">{formatDate(hoveredDay.date)}</div>
             <div className="text-slate-300">
-              {getDayValue(hoveredDay)} XP • {hoveredDay.habitsCompleted} habits
+              {getDayValue(hoveredDay)} XP • {getDayHabitsCount(hoveredDay)} habits
             </div>
           </motion.div>
         )}

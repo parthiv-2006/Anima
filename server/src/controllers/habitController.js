@@ -119,7 +119,10 @@ export async function getHabitHistory(req, res) {
       strXp: 0,
       intXp: 0,
       spiXp: 0,
-      habitsCompleted: 0
+      habitsCompleted: 0,
+      strCount: 0,
+      intCount: 0,
+      spiCount: 0
     });
   }
 
@@ -136,10 +139,13 @@ export async function getHabitHistory(req, res) {
         // Add XP to appropriate stat category
         if (completion.statCategory === 'STR') {
           dayData.strXp += completion.xpAwarded;
+          dayData.strCount += 1;
         } else if (completion.statCategory === 'INT') {
           dayData.intXp += completion.xpAwarded;
+          dayData.intCount += 1;
         } else if (completion.statCategory === 'SPI') {
           dayData.spiXp += completion.xpAwarded;
+          dayData.spiCount += 1;
         }
       }
     });
