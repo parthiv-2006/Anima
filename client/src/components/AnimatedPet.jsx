@@ -2,9 +2,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
 const PET_IMAGES = {
-  EMBER: '/pets/fire/babyfire-removebg-preview.png',
-  AQUA: '/pets/aqua/babyAqua-removebg-preview.png',
-  TERRA: '/pets/terra/babyTerra-removebg-preview.png'
+  EMBER: {
+    1: '/pets/fire/babyfire-removebg-preview.png',
+    2: '/pets/fire/teenFire.png'
+    // Future: 3+ can be added here (adult, legendary, etc.)
+  },
+  AQUA: {
+    1: '/pets/aqua/babyAqua-removebg-preview.png',
+    2: '/pets/aqua/teenAqua.png'
+  },
+  TERRA: {
+    1: '/pets/terra/babyTerra-removebg-preview.png',
+    2: '/pets/terra/teenTerra.png'
+  }
 };
 
 const ANIMATION_STATES = {
@@ -189,6 +199,12 @@ export default function AnimatedPet({ species, totalXp, stage, forcedState, ambi
     }
   };
 
+  const getPetImageByStage = () => {
+    const bySpecies = PET_IMAGES[species] || PET_IMAGES.EMBER;
+    // Prefer exact stage image; otherwise fallback to stage 1 (baby)
+    return bySpecies[stage] || bySpecies[1];
+  };
+
   return (
     <div className={`relative w-full flex items-center justify-center ${
       ambientMode ? 'h-auto' : 'h-80 rounded-2xl'
@@ -276,7 +292,7 @@ export default function AnimatedPet({ species, totalXp, stage, forcedState, ambi
           />
 
           <motion.img
-            src={PET_IMAGES[species]}
+            src={getPetImageByStage()}
             alt={`${species} pet`}
             className="w-64 h-64 object-contain relative z-10 drop-shadow-2xl"
             style={{

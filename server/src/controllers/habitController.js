@@ -1,4 +1,5 @@
 import { User } from '../models/User.js';
+import { calculateEvolution } from './petController.js';
 
 export async function listHabits(req, res) {
   const user = await User.findById(req.userId);
@@ -32,6 +33,8 @@ export async function completeHabit(req, res) {
   habit.streak += 1;
   user.pet.totalXp += xpAwarded;
   user.pet.stats[habit.statCategory.toLowerCase()] += 5 * habit.difficulty;
+  // Recalculate evolution based on new XP/stats
+  calculateEvolution(user.pet);
   
   // Award coins based on difficulty and streak bonus
   const baseCoins = 5 * habit.difficulty;
@@ -80,6 +83,9 @@ export async function resetHabit(req, res) {
 
   habit.isCompletedToday = false;
   habit.streak = Math.max(0, habit.streak - 1);
+
+  // Recalculate evolution in case XP drops below thresholds
+  calculateEvolution(user.pet);
 
   await user.save();
   return res.json({ habits: user.habits, pet: user.pet, coins: user.coins });

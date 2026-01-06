@@ -2,8 +2,23 @@ import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Lottie from 'lottie-react';
 import emberAdult from '../lotties/ember-adult.json';
+import emberTeen from '../lotties/ember-teen.json';
 
 const soundUrl = 'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg';
+
+// Map evolution media by species and stage
+const EVOLUTION_MEDIA = {
+  EMBER: {
+    2: { type: 'lottie', data: emberTeen },
+    3: { type: 'lottie', data: emberAdult }
+  },
+  AQUA: {
+    2: { type: 'img', src: '/pets/aqua/teenAqua.png' }
+  },
+  TERRA: {
+    2: { type: 'img', src: '/pets/terra/teenTerra.png' }
+  }
+};
 
 function EvolutionEvent({ open, onClose, nextPet }) {
   useEffect(() => {
@@ -39,11 +54,29 @@ function EvolutionEvent({ open, onClose, nextPet }) {
               <h3 className="text-2xl font-semibold">{nextPet?.evolutionPath}</h3>
               <motion.div
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1, scale: [1, 1.2, 1] }}
-                transition={{ delay: 0.3, duration: 1.2 }}
+                animate={{ opacity: 1, scale: [1, 1.1, 1] }}
+                transition={{ delay: 0.3, duration: 1 }}
                 className="flex items-center justify-center"
               >
-                <Lottie animationData={emberAdult} loop style={{ width: 240, height: 240 }} />
+                {(() => {
+                  const species = nextPet?.species || 'EMBER';
+                  const stage = nextPet?.stage || 2;
+                  const media = EVOLUTION_MEDIA[species]?.[stage];
+                  if (!media) {
+                    // Fallback to ember teen lottie
+                    return <Lottie animationData={emberTeen} loop style={{ width: 240, height: 240 }} />;
+                  }
+                  if (media.type === 'img') {
+                    return (
+                      <img
+                        src={media.src}
+                        alt={`${species} stage ${stage}`}
+                        style={{ width: 240, height: 240, objectFit: 'contain' }}
+                      />
+                    );
+                  }
+                  return <Lottie animationData={media.data} loop style={{ width: 240, height: 240 }} />;
+                })()}
               </motion.div>
               <button
                 onClick={onClose}

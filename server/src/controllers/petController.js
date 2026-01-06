@@ -1,6 +1,6 @@
 import { User } from '../models/User.js';
 
-function calculateEvolution(pet) {
+export function calculateEvolution(pet) {
   if (pet.totalXp > 500) {
     const values = [pet.stats.str, pet.stats.int, pet.stats.spi];
     const max = Math.max(...values);
