@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor } from 'lucide-react';
+import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor, LineChart } from 'lucide-react';
 import PetStage from './components/PetStage.jsx';
 import QuestCard from './components/QuestCard.jsx';
 import HabitForm from './components/HabitForm.jsx';
@@ -13,6 +13,7 @@ import ProductivityHeatmap from './components/ProductivityHeatmap.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
 import AuthForm from './components/AuthForm.jsx';
 import OnboardingWizard from './components/OnboardingWizard.jsx';
+import WeeklyInsightsTimeline from './components/WeeklyInsightsTimeline.jsx';
 import { usePetStore } from './state/petStore.js';
 import { useAuthStore } from './state/authStore.js';
 import { habits as habitsApi, pet as petApi, shop as shopApi } from './services/api.js';
@@ -96,7 +97,7 @@ function App() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [petState, setPetState] = useState(null);
   const [showShop, setShowShop] = useState(false);
-  const [showFocusTimer, setShowFocusTimer] = useState(false);
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'focus' | 'insights'
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAmbientMode, setShowAmbientMode] = useState(false);
@@ -318,9 +319,10 @@ function App() {
           </motion.button>
           
           <div className="flex-1 flex flex-col gap-2 overflow-visible">
-            <NavItem icon={Home} label="Dashboard" active={!showFocusTimer} onClick={() => setShowFocusTimer(false)} />
+            <NavItem icon={Home} label="Dashboard" active={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')} />
             <NavItem icon={ShoppingBag} label="Shop" onClick={() => setShowShop(true)} />
-            <NavItem icon={Timer} label="Focus Timer" active={showFocusTimer} onClick={() => setShowFocusTimer(true)} />
+            <NavItem icon={Timer} label="Focus Timer" active={activeView === 'focus'} onClick={() => setActiveView('focus')} />
+            <NavItem icon={LineChart} label="Insights" active={activeView === 'insights'} onClick={() => setActiveView('insights')} />
             <NavItem icon={Monitor} label="Ambient Mode" onClick={() => setShowAmbientMode(true)} />
             <NavItem icon={BookOpen} label="Guide" onClick={() => setShowInfoModal(true)} />
           </div>
@@ -347,7 +349,7 @@ function App() {
         {/* ========== CENTER STAGE - The Habitat ========== */}
         <main className="p-6 overflow-y-auto">
           <AnimatePresence mode="wait">
-            {showFocusTimer ? (
+            {activeView === 'focus' ? (
               <motion.div
                 key="focus-timer"
                 initial={{ opacity: 0, y: 20 }}
@@ -365,6 +367,16 @@ function App() {
                     onTimerStateChange={setTimerState}
                   />
                 </div>
+              </motion.div>
+            ) : activeView === 'insights' ? (
+              <motion.div
+                key="insights"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
+              >
+                <WeeklyInsightsTimeline refreshKey={heatmapRefreshKey} userCreatedAt={user?.createdAt} />
               </motion.div>
             ) : (
               <motion.div
