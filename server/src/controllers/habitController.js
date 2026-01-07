@@ -108,8 +108,17 @@ export async function getHabitHistory(req, res) {
   if (!user) return res.status(404).json({ message: 'User not found' });
 
   const days = parseInt(req.query.days) || 365;
-  const currentYear = new Date().getFullYear();
-  const startOfYear = new Date(currentYear, 0, 1); // January 1st of current year
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  
+  // Calculate the start date: either days ago or from account creation, whichever is later
+  const daysAgo = new Date(now);
+  daysAgo.setDate(daysAgo.getDate() - days);
+  
+  const accountCreation = new Date(user.createdAt);
+  accountCreation.setHours(0, 0, 0, 0);
+  
+  const startDate = accountCreation > daysAgo ? accountCreation : daysAgo;
 
   // Helper: format a local date key as YYYY-MM-DD (no UTC shift)
   const getLocalDateKey = (date) => {
@@ -122,11 +131,10 @@ export async function getHabitHistory(req, res) {
   // Aggregate completions by day
   const dailyData = new Map();
 
-  // Initialize all days of the year with zero values
-  for (let i = 0; i < days; i++) {
-    const date = new Date(startOfYear);
-    date.setDate(date.getDate() + i);
-    const dateKey = getLocalDateKey(date);
+  // Initialize all days from account creation to today with zero values
+  const current = new Date(startDate);
+  while (current <= now) {
+    const dateKey = getLocalDateKey(current);
     dailyData.set(dateKey, {
       date: dateKey,
       totalXp: 0,
@@ -138,6 +146,7 @@ export async function getHabitHistory(req, res) {
       intCount: 0,
       spiCount: 0
     });
+    current.setDate(current.getDate() + 1);
   }
 
   // Aggregate completion data from all habits
