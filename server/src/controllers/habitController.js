@@ -199,9 +199,6 @@ export async function getHabitRecommendations(req, res) {
   const weakestStat = statEntries[0][0];
   const secondWeakest = statEntries[1][0];
 
-  // Get existing habit categories to avoid duplicates
-  const existingCategories = new Set(user.habits.map(h => h.statCategory));
-
   // Recommendation suggestions by stat
   const suggestions = {
     STR: [
@@ -227,36 +224,34 @@ export async function getHabitRecommendations(req, res) {
     ]
   };
 
-  // Generate recommendations
+  // Generate recommendations - always show top 2-3, prioritize weakest stat
   const recommendations = [];
 
-  // Add 2 recommendations for weakest stat
-  if (!existingCategories.has(weakestStat)) {
-    const weakestSuggestions = suggestions[weakestStat];
+  // Add 2 recommendations for weakest stat (always included)
+  const weakestSuggestions = suggestions[weakestStat];
+  recommendations.push({
+    ...weakestSuggestions[0],
+    statCategory: weakestStat,
+    priority: 'high',
+    message: `Your ${weakestStat === 'STR' ? 'Strength' : weakestStat === 'INT' ? 'Intellect' : 'Spirit'} is low!`
+  });
+  if (weakestSuggestions.length > 1) {
     recommendations.push({
-      ...weakestSuggestions[0],
+      ...weakestSuggestions[1],
       statCategory: weakestStat,
       priority: 'high',
-      message: `Your ${weakestStat === 'STR' ? 'Strength' : weakestStat === 'INT' ? 'Intellect' : 'Spirit'} is low. ${weakestSuggestions[0].reason}!`
+      message: `Boost your ${weakestStat === 'STR' ? 'Strength' : weakestStat === 'INT' ? 'Intellect' : 'Spirit'}!`
     });
-    if (weakestSuggestions.length > 1) {
-      recommendations.push({
-        ...weakestSuggestions[1],
-        statCategory: weakestStat,
-        priority: 'high',
-        message: `Try this to boost ${weakestStat === 'STR' ? 'Strength' : weakestStat === 'INT' ? 'Intellect' : 'Spirit'}: ${weakestSuggestions[1].reason}!`
-      });
-    }
   }
 
-  // Add 1 recommendation for second weakest
-  if (!existingCategories.has(secondWeakest) && recommendations.length < 3) {
+  // Add 1 recommendation for second weakest (always included)
+  if (recommendations.length < 3) {
     const secondSuggestions = suggestions[secondWeakest];
     recommendations.push({
       ...secondSuggestions[Math.floor(Math.random() * secondSuggestions.length)],
       statCategory: secondWeakest,
       priority: 'medium',
-      message: `Strengthen your ${secondWeakest === 'STR' ? 'Strength' : secondWeakest === 'INT' ? 'Intellect' : 'Spirit'} with a new habit!`
+      message: `Strengthen your ${secondWeakest === 'STR' ? 'Strength' : secondWeakest === 'INT' ? 'Intellect' : 'Spirit'}!`
     });
   }
 
