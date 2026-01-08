@@ -645,6 +645,11 @@ function App() {
           stage: pet.stage + 1,
           evolutionPath: `${pet.species}_${dominant.toUpperCase()}`
         }}
+        prevPet={{
+          species: pet.species,
+          stage: pet.stage,
+          nickname: pet.nickname
+        }}
       />
 
       <ItemShop
