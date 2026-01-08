@@ -182,3 +182,87 @@ export async function getHabitHistory(req, res) {
 
   return res.json(history);
 }
+
+export async function getHabitRecommendations(req, res) {
+  const user = await User.findById(req.userId);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  // Get current stats
+  const stats = {
+    STR: user.pet.stats.str,
+    INT: user.pet.stats.int,
+    SPI: user.pet.stats.spi
+  };
+
+  // Determine weakest and second weakest stats
+  const statEntries = Object.entries(stats).sort((a, b) => a[1] - b[1]);
+  const weakestStat = statEntries[0][0];
+  const secondWeakest = statEntries[1][0];
+
+  // Get existing habit categories to avoid duplicates
+  const existingCategories = new Set(user.habits.map(h => h.statCategory));
+
+  // Recommendation suggestions by stat
+  const suggestions = {
+    STR: [
+      { name: 'Morning Run', difficulty: 2, reason: 'Build cardiovascular endurance' },
+      { name: 'Weight Training', difficulty: 3, reason: 'Increase muscle strength' },
+      { name: 'Yoga Stretching', difficulty: 1, reason: 'Improve flexibility' },
+      { name: 'Push-ups', difficulty: 2, reason: 'Daily strength exercise' },
+      { name: 'Sports Activity', difficulty: 3, reason: 'Active engagement and conditioning' }
+    ],
+    INT: [
+      { name: 'Read Books', difficulty: 2, reason: 'Expand knowledge and vocabulary' },
+      { name: 'Learn Programming', difficulty: 3, reason: 'Build technical skills' },
+      { name: 'Puzzle Solving', difficulty: 1, reason: 'Improve logical thinking' },
+      { name: 'Online Course', difficulty: 2, reason: 'Structured learning' },
+      { name: 'Write Journal', difficulty: 1, reason: 'Reflect and develop writing skills' }
+    ],
+    SPI: [
+      { name: 'Meditation', difficulty: 1, reason: 'Center your mind and reduce stress' },
+      { name: 'Journaling', difficulty: 1, reason: 'Self-reflection and emotional processing' },
+      { name: 'Gratitude Practice', difficulty: 1, reason: 'Cultivate positive mindset' },
+      { name: 'Breathing Exercises', difficulty: 1, reason: 'Calm and center yourself' },
+      { name: 'Creative Art', difficulty: 2, reason: 'Express creativity and emotions' }
+    ]
+  };
+
+  // Generate recommendations
+  const recommendations = [];
+
+  // Add 2 recommendations for weakest stat
+  if (!existingCategories.has(weakestStat)) {
+    const weakestSuggestions = suggestions[weakestStat];
+    recommendations.push({
+      ...weakestSuggestions[0],
+      statCategory: weakestStat,
+      priority: 'high',
+      message: `Your ${weakestStat === 'STR' ? 'Strength' : weakestStat === 'INT' ? 'Intellect' : 'Spirit'} is low. ${weakestSuggestions[0].reason}!`
+    });
+    if (weakestSuggestions.length > 1) {
+      recommendations.push({
+        ...weakestSuggestions[1],
+        statCategory: weakestStat,
+        priority: 'high',
+        message: `Try this to boost ${weakestStat === 'STR' ? 'Strength' : weakestStat === 'INT' ? 'Intellect' : 'Spirit'}: ${weakestSuggestions[1].reason}!`
+      });
+    }
+  }
+
+  // Add 1 recommendation for second weakest
+  if (!existingCategories.has(secondWeakest) && recommendations.length < 3) {
+    const secondSuggestions = suggestions[secondWeakest];
+    recommendations.push({
+      ...secondSuggestions[Math.floor(Math.random() * secondSuggestions.length)],
+      statCategory: secondWeakest,
+      priority: 'medium',
+      message: `Strengthen your ${secondWeakest === 'STR' ? 'Strength' : secondWeakest === 'INT' ? 'Intellect' : 'Spirit'} with a new habit!`
+    });
+  }
+
+  return res.json({
+    recommendations,
+    currentStats: stats,
+    weakestStat
+  });
+}
