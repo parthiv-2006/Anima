@@ -48,6 +48,8 @@ export const habits = {
 
   getHistory: (days = 365) => fetchWithAuth(`/habits/history?days=${days}`),
 
+  getRecommendations: () => fetchWithAuth('/habits/recommendations'),
+
   create: (habitData) => fetchWithAuth('/habits', {
     method: 'POST',
     body: JSON.stringify(habitData)

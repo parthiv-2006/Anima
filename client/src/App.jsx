@@ -11,6 +11,7 @@ import SettingsForm from './components/SettingsForm.jsx';
 import AmbientMode from './components/AmbientMode.jsx';
 import ProductivityHeatmap from './components/ProductivityHeatmap.jsx';
 import { HabitRadar } from './components/HabitRadar.jsx';
+import HabitRecommendations from './components/HabitRecommendations.jsx';
 import AuthForm from './components/AuthForm.jsx';
 import OnboardingWizard from './components/OnboardingWizard.jsx';
 import WeeklyInsightsTimeline from './components/WeeklyInsightsTimeline.jsx';
@@ -478,6 +479,18 @@ function App() {
               <div className="h-48">
                 <HabitRadar stats={pet.stats} />
               </div>
+            </motion.div>
+
+            {/* Habit Recommendations */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 }}
+            >
+              <HabitRecommendations 
+                refreshKey={heatmapRefreshKey}
+                onAddHabit={handleHabitCreate}
+              />
             </motion.div>
 
             {/* Productivity Heatmap */}
