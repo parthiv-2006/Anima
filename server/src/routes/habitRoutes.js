@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { auth } from '../middleware/auth.js';
 import { dailyReset } from '../middleware/dailyReset.js';
-import { addHabit, completeHabit, deleteHabit, listHabits, resetHabit, getHabitHistory } from '../controllers/habitController.js';
+import { addHabit, completeHabit, deleteHabit, listHabits, resetHabit, getHabitHistory, getHabitRecommendations } from '../controllers/habitController.js';
 
 const router = Router();
 
@@ -10,6 +10,7 @@ router.use(auth, dailyReset);
 
 router.get('/', listHabits);
 router.get('/history', getHabitHistory);
+router.get('/recommendations', getHabitRecommendations);
 router.post('/', addHabit);
 router.post('/:id/complete', completeHabit);
 router.post('/:id/reset', resetHabit);
