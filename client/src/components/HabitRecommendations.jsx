@@ -21,35 +21,48 @@ const statColors = {
   SPI: 'from-purple-500 to-pink-500'
 };
 
-export default function HabitRecommendations({ onAddHabit, refreshKey = 0 }) {
+export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, refreshKey = 0 }) {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [expandedIndex, setExpandedIndex] = useState(null);
+  const [successToast, setSuccessToast] = useState(null);
+
+  const loadRecommendations = async () => {
+    try {
+      setLoading(true);
+      const data = await habitsApi.getRecommendations();
+      setRecommendations(data.recommendations || []);
+      setError('');
+    } catch (err) {
+      setError(err.message || 'Failed to load recommendations');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadRecommendations = async () => {
-      try {
-        setLoading(true);
-        const data = await habitsApi.getRecommendations();
-        setRecommendations(data.recommendations || []);
-        setError('');
-      } catch (err) {
-        setError(err.message || 'Failed to load recommendations');
-      } finally {
-        setLoading(false);
-      }
-    };
     loadRecommendations();
   }, [refreshKey]);
 
-  const handleAddRecommendation = (rec) => {
+  const handleAddRecommendation = async (rec) => {
     const habitData = {
       name: rec.name,
       statCategory: rec.statCategory,
       difficulty: rec.difficulty
     };
+    
+    // Show success toast
+    setSuccessToast({ name: rec.name, statCategory: rec.statCategory });
+    setTimeout(() => setSuccessToast(null), 2500);
+    
+    // Call parent handler and refresh recommendations
     onAddHabit(habitData);
+    
+    // Refresh recommendations after a brief delay to show the toast
+    setTimeout(() => {
+      loadRecommendations();
+    }, 300);
   };
 
   if (loading) {
@@ -97,11 +110,26 @@ export default function HabitRecommendations({ onAddHabit, refreshKey = 0 }) {
   }
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur space-y-3">
+    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur space-y-3 relative">
       <div className="flex items-center gap-2">
         <Lightbulb className="w-5 h-5 text-amber-400" />
         <h2 className="text-base font-bold text-white">AI Recommendations</h2>
       </div>
+
+      {/* Success Toast */}
+      {successToast && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="absolute -top-16 left-1/2 -translate-x-1/2 z-50"
+        >
+          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-green-500/30 flex items-center gap-2 whitespace-nowrap">
+            <span>✓</span>
+            <span>{successToast.name} added!</span>
+          </div>
+        </motion.div>
+      )}
 
       <div className="space-y-2">
         {recommendations.map((rec, idx) => (
