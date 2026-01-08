@@ -54,42 +54,56 @@ export default function HabitRecommendations({ onAddHabit, refreshKey = 0 }) {
 
   if (loading) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur">
+        <div className="flex items-center gap-2 mb-3">
           <Lightbulb className="w-5 h-5 text-amber-400" />
-          <h2 className="text-lg font-bold text-white">AI Recommendations</h2>
+          <h2 className="text-base font-bold text-white">AI Recommendations</h2>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-20 bg-white/5 rounded-lg animate-pulse" />
+            <div key={i} className="h-16 bg-white/5 rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
     );
   }
 
-  if (error || recommendations.length === 0) {
+  if (error) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur">
+        <div className="flex items-center gap-2 mb-3">
           <Lightbulb className="w-5 h-5 text-amber-400" />
-          <h2 className="text-lg font-bold text-white">AI Recommendations</h2>
+          <h2 className="text-base font-bold text-white">AI Recommendations</h2>
         </div>
-        <p className="text-slate-400 text-sm">
-          {error ? `Error: ${error}` : 'Create a balanced habit portfolio to unlock recommendations!'}
+        <p className="text-slate-400 text-xs">
+          {error}
+        </p>
+      </div>
+    );
+  }
+
+  if (recommendations.length === 0) {
+    return (
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur">
+        <div className="flex items-center gap-2 mb-3">
+          <Lightbulb className="w-5 h-5 text-amber-400" />
+          <h2 className="text-base font-bold text-white">AI Recommendations</h2>
+        </div>
+        <p className="text-slate-400 text-xs">
+          Loading recommendations...
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur space-y-4">
-      <div className="flex items-center gap-3">
+    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur space-y-3">
+      <div className="flex items-center gap-2">
         <Lightbulb className="w-5 h-5 text-amber-400" />
-        <h2 className="text-lg font-bold text-white">AI Recommendations</h2>
+        <h2 className="text-base font-bold text-white">AI Recommendations</h2>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {recommendations.map((rec, idx) => (
           <motion.div
             key={idx}
@@ -100,29 +114,29 @@ export default function HabitRecommendations({ onAddHabit, refreshKey = 0 }) {
           >
             <button
               onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
-              className={`w-full p-4 rounded-lg border transition-all text-left ${
+              className={`w-full p-3 rounded-lg border transition-all text-left ${
                 rec.priority === 'high'
                   ? 'bg-red-500/10 border-red-500/30 hover:border-red-500/50'
                   : 'bg-white/5 border-white/10 hover:border-white/20'
               }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className={`p-2 rounded-lg bg-gradient-to-br ${statColors[rec.statCategory]} text-white`}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2 flex-1 min-w-0">
+                  <div className={`p-1.5 rounded-lg bg-gradient-to-br ${statColors[rec.statCategory]} text-white flex-shrink-0`}>
                     {statIcons[rec.statCategory]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-white truncate">{rec.name}</h3>
-                      <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-white text-sm">{rec.name}</h3>
+                      <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 ${
                         rec.difficulty === 1 ? 'bg-green-500/20 text-green-300' :
                         rec.difficulty === 2 ? 'bg-yellow-500/20 text-yellow-300' :
                         'bg-red-500/20 text-red-300'
                       }`}>
-                        {rec.difficulty === 1 ? 'Easy' : rec.difficulty === 2 ? 'Medium' : 'Hard'}
+                        {rec.difficulty === 1 ? 'Easy' : rec.difficulty === 2 ? 'Med' : 'Hard'}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-400 truncate">{rec.message}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{rec.message}</p>
                   </div>
                 </div>
                 <motion.button
@@ -132,7 +146,7 @@ export default function HabitRecommendations({ onAddHabit, refreshKey = 0 }) {
                   }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="ml-3 px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition whitespace-nowrap"
+                  className="px-2.5 py-1 bg-amber-500 text-white rounded-lg text-xs font-medium hover:bg-amber-600 transition whitespace-nowrap flex-shrink-0"
                 >
                   Add
                 </motion.button>
@@ -144,13 +158,13 @@ export default function HabitRecommendations({ onAddHabit, refreshKey = 0 }) {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-3 pt-3 border-t border-white/10"
+                  className="mt-2 pt-2 border-t border-white/10"
                 >
-                  <p className="text-sm text-slate-300">
-                    <strong>Why this habit:</strong> {rec.reason}
+                  <p className="text-xs text-slate-300">
+                    <strong>Why:</strong> {rec.reason}
                   </p>
-                  <p className="text-xs text-slate-400 mt-2">
-                    Boosting {statLabels[rec.statCategory]} will help balance your pet's overall stats.
+                  <p className="text-xs text-slate-500 mt-1.5">
+                    Boosts {statLabels[rec.statCategory]}.
                   </p>
                 </motion.div>
               )}
@@ -159,8 +173,8 @@ export default function HabitRecommendations({ onAddHabit, refreshKey = 0 }) {
         ))}
       </div>
 
-      <p className="text-xs text-slate-500 text-center pt-2">
-        💡 Recommendations update based on your stat balance
+      <p className="text-xs text-slate-500 text-center pt-1">
+        💡 Tailored to your weakest stats
       </p>
     </div>
   );
