@@ -13,6 +13,8 @@ const AVATAR_OPTIONS = [
   { id: 'phoenix', emoji: '🔥', label: 'Phoenix' }
 ];
 
+import { auth } from '../services/api.js';
+
 export default function SettingsForm({ isOpen, onClose, user, onUpdateUser }) {
   const [activeTab, setActiveTab] = useState('profile');
   const [username, setUsername] = useState(user?.username || '');
@@ -32,15 +34,15 @@ export default function SettingsForm({ isOpen, onClose, user, onUpdateUser }) {
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     // Update local storage and context
     const updatedUser = { ...user, username, avatar: selectedAvatar };
     localStorage.setItem('user', JSON.stringify(updatedUser));
     onUpdateUser?.(updatedUser);
-    
+
     setSaving(false);
     showSuccessToast('Profile updated successfully! ✨');
   };
@@ -54,19 +56,23 @@ export default function SettingsForm({ isOpen, onClose, user, onUpdateUser }) {
       showSuccessToast('Password must be at least 6 characters! ❌');
       return;
     }
-    
+
     setSaving(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Clear password fields
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    
-    setSaving(false);
-    showSuccessToast('Password changed successfully! 🔐');
+
+    try {
+      await auth.updatePassword({ currentPassword, newPassword });
+
+      // Clear password fields
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
+      showSuccessToast('Password changed successfully! 🔐');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -110,33 +116,30 @@ export default function SettingsForm({ isOpen, onClose, user, onUpdateUser }) {
           <div className="flex border-b border-white/10">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${
-                activeTab === 'profile'
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${activeTab === 'profile'
                   ? 'text-amber-400 border-b-2 border-amber-500 bg-amber-500/5'
                   : 'text-slate-400 hover:text-white'
-              }`}
+                }`}
             >
               <User className="w-4 h-4" />
               Profile
             </button>
             <button
               onClick={() => setActiveTab('security')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${
-                activeTab === 'security'
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${activeTab === 'security'
                   ? 'text-amber-400 border-b-2 border-amber-500 bg-amber-500/5'
                   : 'text-slate-400 hover:text-white'
-              }`}
+                }`}
             >
               <Lock className="w-4 h-4" />
               Security
             </button>
             <button
               onClick={() => setActiveTab('appearance')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${
-                activeTab === 'appearance'
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${activeTab === 'appearance'
                   ? 'text-amber-400 border-b-2 border-amber-500 bg-amber-500/5'
                   : 'text-slate-400 hover:text-white'
-              }`}
+                }`}
             >
               <Palette className="w-4 h-4" />
               Avatar
@@ -273,11 +276,10 @@ export default function SettingsForm({ isOpen, onClose, user, onUpdateUser }) {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setSelectedAvatar(avatar.id)}
-                          className={`relative p-4 rounded-xl border-2 transition ${
-                            selectedAvatar === avatar.id
+                          className={`relative p-4 rounded-xl border-2 transition ${selectedAvatar === avatar.id
                               ? 'border-amber-500 bg-amber-500/20'
                               : 'border-white/10 bg-white/5 hover:border-white/20'
-                          }`}
+                            }`}
                         >
                           <span className="text-3xl block text-center">{avatar.emoji}</span>
                           <span className="text-[10px] text-slate-400 block text-center mt-1">{avatar.label}</span>
