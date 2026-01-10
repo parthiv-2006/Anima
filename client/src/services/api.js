@@ -17,6 +17,13 @@ async function fetchWithAuth(endpoint, options = {}) {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('auth-storage');
+      window.location.reload();
+      throw new Error('Session expired. Please login again.');
+    }
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
     throw new Error(error.message || `HTTP ${response.status}`);
   }
@@ -39,7 +46,12 @@ export const auth = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-  }
+  },
+
+  updatePassword: (data) => fetchWithAuth('/auth/update-password', {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  })
 };
 
 // ============ Habit APIs ============
