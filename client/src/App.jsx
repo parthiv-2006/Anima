@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor, LineChart } from 'lucide-react';
+import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor, LineChart, Scroll } from 'lucide-react';
 import PetStage from './components/PetStage.jsx';
 import QuestCard from './components/QuestCard.jsx';
 import HabitForm from './components/HabitForm.jsx';
@@ -15,6 +15,8 @@ import HabitRecommendations from './components/HabitRecommendations.jsx';
 import AuthForm from './components/AuthForm.jsx';
 import OnboardingWizard from './components/OnboardingWizard.jsx';
 import WeeklyInsightsTimeline from './components/WeeklyInsightsTimeline.jsx';
+import AdventureLog from './components/AdventureLog.jsx';
+import QuestCompletionModal from './components/QuestCompletionModal.jsx';
 import { usePetStore } from './state/petStore.js';
 import { useAuthStore } from './state/authStore.js';
 import { habits as habitsApi, pet as petApi, shop as shopApi } from './services/api.js';
@@ -48,11 +50,10 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => (
     onClick={onClick}
     whileHover={{ scale: 1.1 }}
     whileTap={{ scale: 0.95 }}
-    className={`relative group p-3 rounded-xl transition-all duration-300 ${
-      active 
-        ? 'bg-amber-500/20 text-amber-400 shadow-lg shadow-amber-500/20' 
-        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-    }`}
+    className={`relative group p-3 rounded-xl transition-all duration-300 ${active
+      ? 'bg-amber-500/20 text-amber-400 shadow-lg shadow-amber-500/20'
+      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+      }`}
   >
     <Icon className="w-5 h-5" />
     {/* Tooltip - positioned outside sidebar with high z-index */}
@@ -110,7 +111,7 @@ function App() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [petState, setPetState] = useState(null);
   const [showShop, setShowShop] = useState(false);
-  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'focus' | 'insights'
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'focus' | 'insights' | 'log'
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAmbientMode, setShowAmbientMode] = useState(false);
@@ -119,7 +120,8 @@ function App() {
   const [coins, setCoins] = useState(0);
   const [inventory, setInventory] = useState(null);
   const [activeBackground, setActiveBackground] = useState('default');
-  
+  const [completionModalData, setCompletionModalData] = useState(null); // { habit } or null
+
   const pet = usePetStore((s) => s.pet);
   const setPet = usePetStore((s) => s.updatePet);
 
@@ -165,7 +167,7 @@ function App() {
   console.log('🔄 App render - hydrated:', isHydrated, 'authenticated:', isAuthenticated, 'loading:', loading);
 
   // ========== CONDITIONAL RENDERING (after all hooks) ==========
-  
+
   // Wait for hydration before rendering
   if (!isHydrated) {
     console.log('⏳ Waiting for hydration...');
@@ -229,20 +231,28 @@ function App() {
     }
   }
 
-  async function handleHabitComplete(habit) {
+  // Triggered when clicking a Quest Card
+  function requestHabitCompletion(habit) {
+    if (habit.isCompletedToday) return;
+    setCompletionModalData({ habit });
+  }
+
+  // Actual completion logic (called from Modal)
+  async function confirmHabitCompletion(habit, note) {
     try {
       // Optimistic update
       setHabits((prev) =>
         prev.map((h) => (h._id === habit._id ? { ...h, isCompletedToday: true } : h))
       );
 
-      const response = await habitsApi.complete(habit._id);
+      const response = await habitsApi.complete(habit._id, note);
       setHabits(response.habits);
       setPet(response.pet);
       if (response.coins !== undefined) setCoins(response.coins);
 
       // Refresh heatmap after completion
       setHeatmapRefreshKey(prev => prev + 1);
+      setCompletionModalData(null); // Close modal
 
       // Check for evolution
       if (response.pet.totalXp >= 100 && pet.stage === 1) {
@@ -311,8 +321,8 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-display">
       {/* Main 3-Column Grid Layout */}
       <div className="h-screen grid grid-cols-[80px_1fr_480px] gap-0">
-        
-        {/* ========== LEFT SIDEBAR - Glass Navigation Rail ========== */}
+
+        {/* ========== LEFT SIDEBAR ========== */}
         <aside className="relative z-50 bg-slate-900/50 backdrop-blur-xl border-r border-white/5 flex flex-col items-center py-6 gap-2 overflow-visible">
           {/* User Level & Coins */}
           <div className="mb-6 text-center">
@@ -336,7 +346,7 @@ function App() {
               <p className="text-[10px] text-slate-400 uppercase tracking-wider">Level</p>
             </div>
           </div>
-          
+
           <motion.button
             onClick={() => setShowShop(true)}
             whileHover={{ scale: 1.05 }}
@@ -345,16 +355,17 @@ function App() {
             <span className="text-lg">🪙</span>
             <span className="text-xs font-bold text-amber-400">{coins}</span>
           </motion.button>
-          
+
           <div className="flex-1 flex flex-col gap-2 overflow-visible">
             <NavItem icon={Home} label="Dashboard" active={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')} />
+            <NavItem icon={Scroll} label="Adventure Log" active={activeView === 'log'} onClick={() => setActiveView('log')} />
             <NavItem icon={ShoppingBag} label="Shop" onClick={() => setShowShop(true)} />
             <NavItem icon={Timer} label="Focus Timer" active={activeView === 'focus'} onClick={() => setActiveView('focus')} />
             <NavItem icon={LineChart} label="Insights" active={activeView === 'insights'} onClick={() => setActiveView('insights')} />
             <NavItem icon={Monitor} label="Ambient Mode" onClick={() => setShowAmbientMode(true)} />
             <NavItem icon={BookOpen} label="Guide" onClick={() => setShowInfoModal(true)} />
           </div>
-          
+
           {/* Bottom Actions */}
           <div className="mt-auto flex flex-col gap-2 overflow-visible">
             <NavItem icon={Settings} label="Settings" onClick={() => setShowSettings(true)} />
@@ -374,7 +385,7 @@ function App() {
           </div>
         </aside>
 
-        {/* ========== CENTER STAGE - The Habitat ========== */}
+        {/* ========== CENTER STAGE ========== */}
         <main className="p-6 overflow-y-auto">
           <AnimatePresence mode="wait">
             {activeView === 'focus' ? (
@@ -386,8 +397,8 @@ function App() {
                 className="h-full"
               >
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 h-full">
-                  <FocusTimer 
-                    onTimerStart={(state) => setPetState(state)} 
+                  <FocusTimer
+                    onTimerStart={(state) => setPetState(state)}
                     onTimerEnd={() => {
                       setPetState(null);
                       loadData();
@@ -406,6 +417,16 @@ function App() {
               >
                 <WeeklyInsightsTimeline refreshKey={heatmapRefreshKey} userCreatedAt={user?.createdAt} />
               </motion.div>
+            ) : activeView === 'log' ? (
+              <motion.div
+                key="log"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="h-full"
+              >
+                <AdventureLog />
+              </motion.div>
             ) : (
               <motion.div
                 key="habitat"
@@ -417,14 +438,14 @@ function App() {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       className="text-sm uppercase tracking-[0.3em] text-amber-500/80 font-semibold"
                     >
                       Welcome Back
                     </motion.p>
-                    <motion.h1 
+                    <motion.h1
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 }}
@@ -455,16 +476,16 @@ function App() {
                   {/* Radial gradient habitat background */}
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.08)_0%,transparent_60%)]" />
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.05)_0%,transparent_50%)]" />
-                  
+
                   {/* Ambient glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-t from-amber-500/5 via-transparent to-transparent pointer-events-none" />
-                  
+
                   <div className="p-10 h-full flex items-center justify-center">
                     <div className="w-full max-w-lg transform scale-110">
-                      <PetStage 
-                        petType={pet.species} 
-                        evolutionStage={pet.stage} 
-                        totalXp={pet.totalXp} 
+                      <PetStage
+                        petType={pet.species}
+                        evolutionStage={pet.stage}
+                        totalXp={pet.totalXp}
                         petState={petState}
                         background={activeBackground}
                         hp={pet.hp}
@@ -514,7 +535,7 @@ function App() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.05 }}
             >
-              <HabitRecommendations 
+              <HabitRecommendations
                 refreshKey={heatmapRefreshKey}
                 onAddHabit={handleHabitCreate}
               />
@@ -557,7 +578,7 @@ function App() {
                   <p className="text-slate-400 font-medium">No quests yet!</p>
                   <p className="text-sm text-slate-500 mt-1">Begin your journey by creating a quest.</p>
                 </div>
-                
+
                 {/* Daily Quote Card */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -607,7 +628,7 @@ function App() {
                 {['STR', 'INT', 'SPI'].map((category, categoryIndex) => {
                   const categoryHabits = habitsByCategory[category] || [];
                   if (categoryHabits.length === 0) return null;
-                  
+
                   const categoryConfig = {
                     STR: { icon: '⚔️', label: 'Strength', accent: 'border-l-red-500', bg: 'from-red-500/10' },
                     INT: { icon: '📚', label: 'Intellect', accent: 'border-l-blue-500', bg: 'from-blue-500/10' },
@@ -616,7 +637,7 @@ function App() {
                   const config = categoryConfig[category];
 
                   return (
-                    <motion.div 
+                    <motion.div
                       key={category}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -635,7 +656,7 @@ function App() {
                           >
                             <QuestCard
                               habit={habit}
-                              onComplete={handleHabitComplete}
+                              onComplete={requestHabitCompletion}
                               onReset={handleHabitReset}
                               onDelete={handleHabitDelete}
                             />
@@ -652,11 +673,18 @@ function App() {
       </div>
 
       {/* Modals */}
+      <QuestCompletionModal
+        habit={completionModalData?.habit}
+        isOpen={!!completionModalData}
+        onClose={() => setCompletionModalData(null)}
+        onConfirm={confirmHabitCompletion}
+      />
+
       <InfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} />
 
-      <SettingsForm 
-        isOpen={showSettings} 
-        onClose={() => setShowSettings(false)} 
+      <SettingsForm
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
         user={user}
         onUpdateUser={(updatedUser) => {
           // Update auth store with new user data
@@ -694,7 +722,7 @@ function App() {
 
       {/* Ambient Mode - Full Screen Overlay */}
       {showAmbientMode && (
-        <AmbientMode 
+        <AmbientMode
           onExit={() => setShowAmbientMode(false)}
           currentBackground={activeBackground}
           timerState={timerState}
