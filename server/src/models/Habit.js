@@ -10,7 +10,8 @@ const HabitSchema = new mongoose.Schema({
     date: { type: Date, required: true },
     xpAwarded: { type: Number, required: true },
     statCategory: { type: String, enum: ['STR', 'INT', 'SPI'], required: true },
-    difficulty: { type: Number, required: true }
+    difficulty: { type: Number, required: true },
+    note: { type: String, default: '' }
   }]
 });
 
