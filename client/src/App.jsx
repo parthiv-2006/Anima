@@ -19,6 +19,18 @@ import { usePetStore } from './state/petStore.js';
 import { useAuthStore } from './state/authStore.js';
 import { habits as habitsApi, pet as petApi, shop as shopApi } from './services/api.js';
 
+// Avatar emoji mapping for display
+const AVATAR_EMOJIS = {
+  warrior: '⚔️',
+  mage: '🧙',
+  ranger: '🏹',
+  healer: '💚',
+  rogue: '🗡️',
+  monk: '🧘',
+  dragon: '🐉',
+  phoenix: '🔥'
+};
+
 // Daily quotes for empty state
 const DAILY_QUOTES = [
   { quote: "The journey of a thousand miles begins with a single step.", author: "Lao Tzu" },
@@ -304,10 +316,21 @@ function App() {
         <aside className="relative z-50 bg-slate-900/50 backdrop-blur-xl border-r border-white/5 flex flex-col items-center py-6 gap-2 overflow-visible">
           {/* User Level & Coins */}
           <div className="mb-6 text-center">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-amber-500/30">
-              {Math.floor(pet.totalXp / 100) + 1}
+            <div className="flex items-center gap-3">
+              {/* Avatar */}
+              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shadow-md">
+                {AVATAR_EMOJIS[user?.avatar || 'warrior']}
+              </div>
+              {/* Level */}
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-amber-500/30">
+                {Math.floor(pet.totalXp / 100) + 1}
+              </div>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">Level</p>
+            <div className="mt-1 flex items-center justify-center gap-2">
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Avatar</p>
+              <span className="text-[10px] text-slate-500">•</span>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Level</p>
+            </div>
           </div>
           
           <motion.button

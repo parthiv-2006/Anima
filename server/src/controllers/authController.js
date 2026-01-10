@@ -8,7 +8,7 @@ function signToken(id) {
 
 export async function register(req, res) {
   try {
-    const { username, email, password, species = 'EMBER' } = req.body;
+    const { username, email, password, species = 'EMBER', avatar = 'warrior' } = req.body;
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already registered' });
 
@@ -17,6 +17,7 @@ export async function register(req, res) {
       username,
       email,
       password: hash,
+      avatar,
       pet: {
         species,
         stats: { str: 10, int: 10, spi: 10 },

@@ -8,7 +8,8 @@ export default function AuthForm() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: ''
+    password: '',
+    avatar: 'warrior'
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -97,6 +98,39 @@ export default function AuthForm() {
                   placeholder="Choose your name"
                   required={isRegister}
                 />
+                {/* Avatar Picker */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Choose Your Avatar
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { id: 'warrior', emoji: '⚔️', label: 'Warrior' },
+                      { id: 'mage', emoji: '🧙', label: 'Mage' },
+                      { id: 'ranger', emoji: '🏹', label: 'Ranger' },
+                      { id: 'healer', emoji: '💚', label: 'Healer' },
+                      { id: 'rogue', emoji: '🗡️', label: 'Rogue' },
+                      { id: 'monk', emoji: '🧘', label: 'Monk' },
+                      { id: 'dragon', emoji: '🐉', label: 'Dragon' },
+                      { id: 'phoenix', emoji: '🔥', label: 'Phoenix' }
+                    ].map((a) => (
+                      <button
+                        type="button"
+                        key={a.id}
+                        onClick={() => setFormData({ ...formData, avatar: a.id })}
+                        className={`relative p-3 rounded-lg border text-center transition ${
+                          formData.avatar === a.id
+                            ? 'border-amber-500 bg-amber-500/20'
+                            : 'border-white/10 bg-white/5 hover:border-white/20'
+                        }`}
+                        aria-label={a.label}
+                      >
+                        <span className="text-2xl">{a.emoji}</span>
+                        <span className="block text-[10px] text-slate-400 mt-1">{a.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
