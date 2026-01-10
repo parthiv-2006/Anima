@@ -18,11 +18,13 @@ const EVOLUTION_MEDIA = {
   },
   AQUA: {
     1: { type: 'lottie', data: aquaBaby },
-    2: { type: 'img', src: '/pets/aqua/teenAqua.png' }
+    2: { type: 'img', src: '/pets/aqua/teenAqua.png' },
+    3: { type: 'img', src: '/pets/aqua/aqua3rdEvol.png' }
   },
   TERRA: {
     1: { type: 'lottie', data: terraBaby },
-    2: { type: 'img', src: '/pets/terra/teenTerra.png' }
+    2: { type: 'img', src: '/pets/terra/teenTerra.png' },
+    3: { type: 'img', src: '/pets/terra/terra3rdEvol.png' }
   }
 };
 

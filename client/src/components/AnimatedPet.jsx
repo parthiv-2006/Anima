@@ -4,16 +4,19 @@ import { useState, useEffect } from 'react';
 const PET_IMAGES = {
   EMBER: {
     1: '/pets/fire/babyfire-removebg-preview.png',
-    2: '/pets/fire/teenFire.png'
+    2: '/pets/fire/teenFire.png',
+    3: '/pets/fire/fire3rdEvol.png'
     // Future: 3+ can be added here (adult, legendary, etc.)
   },
   AQUA: {
     1: '/pets/aqua/babyAqua-removebg-preview.png',
-    2: '/pets/aqua/teenAqua.png'
+    2: '/pets/aqua/teenAqua.png',
+    3: '/pets/aqua/aqua3rdEvol.png'
   },
   TERRA: {
     1: '/pets/terra/babyTerra-removebg-preview.png',
-    2: '/pets/terra/teenTerra.png'
+    2: '/pets/terra/teenTerra.png',
+    3: '/pets/terra/terra3rdEvol.png'
   }
 };
 
