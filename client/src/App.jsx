@@ -316,11 +316,15 @@ function App() {
         <aside className="relative z-50 bg-slate-900/50 backdrop-blur-xl border-r border-white/5 flex flex-col items-center py-6 gap-2 overflow-visible">
           {/* User Level & Coins */}
           <div className="mb-6 text-center">
-            <div className="flex items-center gap-3">
-              {/* Avatar */}
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shadow-md">
+            <div className="flex flex-col items-center gap-2">
+              {/* Avatar (click to open settings) */}
+              <button
+                onClick={() => setShowSettings(true)}
+                className="w-12 h-12 rounded-xl bg-slate-800/50 border border-white/10 flex items-center justify-center text-2xl shadow-md hover:border-amber-400/60 transition"
+                aria-label="Open settings to change avatar"
+              >
                 {AVATAR_EMOJIS[user?.avatar || 'warrior']}
-              </div>
+              </button>
               {/* Level */}
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-amber-500/30">
                 {Math.floor(pet.totalXp / 100) + 1}
