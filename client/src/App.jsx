@@ -423,7 +423,7 @@ function App() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="relative bg-gradient-to-b from-slate-800/80 to-slate-900/90 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl shadow-black/30 min-h-[500px]"
+                  className="relative bg-gradient-to-b from-slate-800/80 to-slate-900/90 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl shadow-black/30 min-h-[560px]"
                 >
                   {/* Radial gradient habitat background */}
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.08)_0%,transparent_60%)]" />
@@ -432,8 +432,8 @@ function App() {
                   {/* Ambient glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-t from-amber-500/5 via-transparent to-transparent pointer-events-none" />
                   
-                  <div className="p-8 h-full flex items-center justify-center">
-                    <div className="w-full max-w-md transform scale-110">
+                  <div className="p-10 h-full flex items-center justify-center">
+                    <div className="w-full max-w-lg transform scale-110">
                       <PetStage 
                         petType={pet.species} 
                         evolutionStage={pet.stage} 
