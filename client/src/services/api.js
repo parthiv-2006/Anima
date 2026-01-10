@@ -60,6 +60,8 @@ export const habits = {
 
   getHistory: (days = 365) => fetchWithAuth(`/habits/history?days=${days}`),
 
+  getLog: () => fetchWithAuth('/habits/log'),
+
   getRecommendations: () => fetchWithAuth('/habits/recommendations'),
 
   create: (habitData) => fetchWithAuth('/habits', {
@@ -67,8 +69,9 @@ export const habits = {
     body: JSON.stringify(habitData)
   }),
 
-  complete: (habitId) => fetchWithAuth(`/habits/${habitId}/complete`, {
-    method: 'POST'
+  complete: (habitId, note = '') => fetchWithAuth(`/habits/${habitId}/complete`, {
+    method: 'POST',
+    body: JSON.stringify({ note })
   }),
 
   reset: (habitId) => fetchWithAuth(`/habits/${habitId}/reset`, {

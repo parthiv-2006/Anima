@@ -27,15 +27,16 @@ export async function completeHabit(req, res) {
     return res.status(400).json({ message: 'Habit already completed today' });
   }
 
+  const { note } = req.body;
   const xpAwarded = 10 * habit.difficulty;
-  
+
   habit.isCompletedToday = true;
   habit.streak += 1;
   user.pet.totalXp += xpAwarded;
   user.pet.stats[habit.statCategory.toLowerCase()] += 5 * habit.difficulty;
   // Recalculate evolution based on new XP/stats
   calculateEvolution(user.pet);
-  
+
   // Award coins based on difficulty and streak bonus
   const baseCoins = 5 * habit.difficulty;
   const streakBonus = Math.min(habit.streak, 7); // Max 7 coin bonus from streak
@@ -46,7 +47,8 @@ export async function completeHabit(req, res) {
     date: new Date(),
     xpAwarded,
     statCategory: habit.statCategory,
-    difficulty: habit.difficulty
+    difficulty: habit.difficulty,
+    note: note || ''
   });
 
   await user.save();
@@ -65,15 +67,18 @@ export async function resetHabit(req, res) {
     return res.status(400).json({ message: 'Habit not completed yet' });
   }
 
+  // Find the last log entry to revert
+  const lastLog = habit.completionLog[habit.completionLog.length - 1];
+
   // Revert rewards
   user.pet.totalXp -= 10 * habit.difficulty;
   user.pet.stats[habit.statCategory.toLowerCase()] -= 5 * habit.difficulty;
-  
+
   // Revert coins (same calculation as in complete)
   const baseCoins = 5 * habit.difficulty;
   const streakBonus = Math.min(habit.streak, 7);
   user.coins -= (baseCoins + streakBonus);
-  
+
   // Ensure stats and coins don't go negative
   user.pet.totalXp = Math.max(0, user.pet.totalXp);
   user.pet.stats.str = Math.max(0, user.pet.stats.str);
@@ -83,6 +88,7 @@ export async function resetHabit(req, res) {
 
   habit.isCompletedToday = false;
   habit.streak = Math.max(0, habit.streak - 1);
+  habit.completionLog.pop(); // Remove the log entry
 
   // Recalculate evolution in case XP drops below thresholds
   calculateEvolution(user.pet);
@@ -110,14 +116,14 @@ export async function getHabitHistory(req, res) {
   const days = parseInt(req.query.days) || 365;
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  
+
   // Calculate the start date: either days ago or from account creation, whichever is later
   const daysAgo = new Date(now);
   daysAgo.setDate(daysAgo.getDate() - days);
-  
+
   const accountCreation = new Date(user.createdAt);
   accountCreation.setHours(0, 0, 0, 0);
-  
+
   const startDate = accountCreation > daysAgo ? accountCreation : daysAgo;
 
   // Helper: format a local date key as YYYY-MM-DD (no UTC shift)
@@ -154,12 +160,12 @@ export async function getHabitHistory(req, res) {
     habit.completionLog.forEach(completion => {
       const completionDate = new Date(completion.date);
       const dateKey = getLocalDateKey(completionDate);
-      
+
       if (dailyData.has(dateKey)) {
         const dayData = dailyData.get(dateKey);
         dayData.totalXp += completion.xpAwarded;
         dayData.habitsCompleted += 1;
-        
+
         // Add XP to appropriate stat category
         if (completion.statCategory === 'STR') {
           dayData.strXp += completion.xpAwarded;
@@ -176,11 +182,37 @@ export async function getHabitHistory(req, res) {
   });
 
   // Convert map to array and sort by date
-  const history = Array.from(dailyData.values()).sort((a, b) => 
+  const history = Array.from(dailyData.values()).sort((a, b) =>
     new Date(a.date) - new Date(b.date)
   );
 
   return res.json(history);
+}
+
+export async function getAdventureLog(req, res) {
+  const user = await User.findById(req.userId);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  // Gather all logs from all habits into a single flat array
+  const logs = [];
+  user.habits.forEach(habit => {
+    habit.completionLog.forEach(entry => {
+      logs.push({
+        id: entry._id, // Use subdocument ID
+        habitName: habit.name,
+        date: entry.date,
+        xp: entry.xpAwarded,
+        statCategory: entry.statCategory,
+        difficulty: entry.difficulty,
+        note: entry.note
+      });
+    });
+  });
+
+  // Sort by date (newest first)
+  logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return res.json(logs);
 }
 
 export async function getHabitRecommendations(req, res) {
