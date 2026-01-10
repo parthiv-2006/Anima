@@ -55,3 +55,23 @@ export async function login(req, res) {
     return res.status(500).json({ message: 'Login failed' });
   }
 }
+
+export async function updatePassword(req, res) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) return res.status(400).json({ message: 'Incorrect current password' });
+
+    const hash = await bcrypt.hash(newPassword, 10);
+    user.password = hash;
+    await user.save();
+
+    return res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Failed to update password' });
+  }
+}

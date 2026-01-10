@@ -1,7 +1,7 @@
 import { User } from '../models/User.js';
 
 export function calculateEvolution(pet) {
-  if (pet.totalXp > 500) {
+  if (pet.totalXp >= 500) {
     const values = [pet.stats.str, pet.stats.int, pet.stats.spi];
     const max = Math.max(...values);
     const min = Math.min(...values);
@@ -9,7 +9,7 @@ export function calculateEvolution(pet) {
     const isPure = max >= 2 * min;
     pet.stage = 3;
     pet.evolutionPath = isPure ? `${pet.species}_${dominant.toUpperCase()}_PURE` : `${pet.species}_HYBRID`;
-  } else if (pet.totalXp > 100) {
+  } else if (pet.totalXp >= 100) {
     const dominant = Object.entries(pet.stats).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
     pet.stage = 2;
     pet.evolutionPath = `${pet.species}_${dominant.toUpperCase()}`;
