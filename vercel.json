@@ -1,5 +1,5 @@
 {
-    "buildCommand": "npm run build -w client",
+    "buildCommand": "cd client && npm run build",
     "outputDirectory": "client/dist",
     "installCommand": "npm install && npm install @rollup/rollup-linux-x64-gnu --save-optional",
     "framework": "vite"
