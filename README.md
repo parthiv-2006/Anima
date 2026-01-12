@@ -14,11 +14,20 @@
 
 ### ✨ Key Features
 
--   **🦖 Dynamic Pet Evolution**: Your pet grows and changes form based on your consistency. Neglect your habits, and your pet's health decays.
--   **📊 Interactive Habit Tracking**: Create, track, and complete daily habits with satisfying interactions and animations.
--   **🛍️ Virtual Economy**: Earn coins by completing tasks to buy food, elixirs, and backgrounds in the in-game shop.
--   **📈 Visual Analytics**: Track your completion history and productivity trends with beautiful charts.
--   **🔐 Secure Authentication**: Full user registration and login system with JWT security.
+-   **🦖 Dynamic Pet Evolution System**  
+    Your digital companion isn't static. It starts as an innocent egg and evolves into different forms (Spirit, Elemental, Celestial) based on your habit consistency. Beware: neglecting your habits causes your pet's health to decay, potentially leading to 'devolution' or state loss.
+
+-   **📊 Gamified Habit Tracking**  
+    Define your daily goals and mark them as complete to earn **XP** and **Gold**. The interface provides satisfying tactile feedback (confetti, sounds, micro-animations) to scientifically reinforce positive behavior loops.
+
+-   **🛍️ Virtual Economy & Shop**  
+    Spend your hard-earned Gold in the centralized Shop. Buy **Food** to restore your pet's health, **Elixirs** to protect your streak on busy days, or unlock stunning **Backgrounds** to customize your pet's habitat.
+
+-   **📈 Visual Productivity Analytics**  
+    Visualize your progress with interactive charts powered by Recharts. Track your completion rates over time, view your longest streaks, and identify productivity patterns to optimize your routine.
+
+-   **🔐 Enterprise-Grade Security**  
+    Built with safety in mind using proper JWT authentication flows, bcrypt password hashing, HTTP-only cookies, and protections against XSS and NoSQL injection attacks.
 
 ---
 
