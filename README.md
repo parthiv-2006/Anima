@@ -1,4 +1,4 @@
-# 🥚 Evo Habit – Gamified Productivity Companion
+# 🥚 Anima – Gamified Productivity Companion
 
 > **"Your Tamagotchi for Productivity"**  
 > transform your daily routines into an engaging journey of growth and evolution.
@@ -10,7 +10,7 @@
 
 ## 📖 About The Project
 
-**Evo Habit** helps users build consistency by turning habit tracking into a game. Instead of just checking boxes, users care for a virtual pet that evolves based on their real-world productivity.
+*Anima* helps users build consistency by turning habit tracking into a game. Instead of just checking boxes, users care for a virtual pet that evolves based on their real-world productivity.
 
 ### ✨ Key Features
 
@@ -112,6 +112,6 @@ Anima/
 **Parthiv Paul**  
 -   [LinkedIn](www.linkedin.com/in/parthiv-paul)
 -   [GitHub](https://github.com/parthiv-2006)
--   Email: parthiv.paul5545@gmail.com
+-   [Email](mailto:parthiv.paul5545@gmail.com)
 
 *Created as a personal project to explore gamification in productivity tools.*
