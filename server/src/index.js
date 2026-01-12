@@ -37,9 +37,10 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// CORS Config (Allow all for dev, restrict in prod)
+// CORS Config
+const clientUrl = process.env.CLIENT_URL;
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL : '*',
+  origin: process.env.NODE_ENV === 'production' && clientUrl ? clientUrl : '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));
