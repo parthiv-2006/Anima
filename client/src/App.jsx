@@ -17,6 +17,7 @@ import OnboardingWizard from './components/OnboardingWizard.jsx';
 import WeeklyInsightsTimeline from './components/WeeklyInsightsTimeline.jsx';
 import AdventureLog from './components/AdventureLog.jsx';
 import QuestCompletionModal from './components/QuestCompletionModal.jsx';
+import MiniQuestLog from './components/MiniQuestLog.jsx';
 import { usePetStore } from './state/petStore.js';
 import { useAuthStore } from './state/authStore.js';
 import { habits as habitsApi, pet as petApi, shop as shopApi } from './services/api.js';
@@ -51,8 +52,8 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => (
     whileHover={{ scale: 1.1 }}
     whileTap={{ scale: 0.95 }}
     className={`relative group p-3 rounded-xl transition-all duration-300 ${active
-      ? 'bg-amber-500/20 text-amber-400 shadow-lg shadow-amber-500/20'
-      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+      ? 'bg-accentAmber/10 text-accentAmber shadow-lg shadow-accentAmber/20'
+      : 'text-textMuted hover:text-accentAmber hover:bg-accentAmber/5'
       }`}
   >
     <Icon className="w-5 h-5" />
@@ -79,13 +80,13 @@ const InfoModal = ({ isOpen, onClose }) => (
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-6 max-w-md shadow-2xl"
+          className="bg-surface backdrop-blur-xl border border-borderSubtle rounded-2xl p-6 max-w-md shadow-2xl"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">📖 Evolution Guide</h3>
-            <button onClick={onClose} className="text-slate-400 hover:text-white transition">✕</button>
+            <h3 className="text-lg font-bold text-textPrimary font-cinzel">📖 Evolution Guide</h3>
+            <button onClick={onClose} className="text-textMuted hover:text-textPrimary transition">✕</button>
           </div>
-          <ul className="text-sm text-slate-300 space-y-3">
+          <ul className="text-sm text-textPrimary space-y-3 font-sans">
             <li className="flex gap-2"><span>🌟</span> Stage 2 unlocks after 100 XP. Your dominant stat determines variant.</li>
             <li className="flex gap-2"><span>⚡</span> Stage 3 unlocks after 500 XP. Pure vs hybrid build check.</li>
             <li className="flex gap-2"><span>💔</span> Decay: If you're away 24+ hours, HP drops 10% and habits reset.</li>
@@ -95,6 +96,38 @@ const InfoModal = ({ isOpen, onClose }) => (
       </motion.div>
     )}
   </AnimatePresence>
+);
+
+const TopBar = ({ title, user, dominant, totalXP, coins, onAvatarClick }) => (
+  <div className="h-[56px] bg-topbar border-b border-borderSubtle flex items-center px-6 gap-4 shrink-0 backdrop-blur-[12px] relative z-10">
+    <div className="flex-1">
+      <div className="text-[9px] text-textMuted font-bold tracking-[2px] uppercase">Welcome Back</div>
+      <div className="text-[17px] text-textPrimary font-cinzel font-bold tracking-wide">{title}</div>
+    </div>
+    <div className="flex gap-2 items-center">
+      <div className="flex items-center gap-2 bg-[#1a2236]/80 border border-white/5 rounded-[10px] px-3.5 py-1.5">
+        <div className="text-center">
+          <div className="text-[8px] text-textMuted font-bold tracking-[1.5px] uppercase">Dominant</div>
+          <div className="text-[14px] text-accentAmber font-bold font-cinzel">{dominant}</div>
+        </div>
+        <div className="w-[1px] h-6 bg-white/5" />
+        <div className="text-center">
+          <div className="text-[8px] text-textMuted font-bold tracking-[1.5px] uppercase">Total XP</div>
+          <div className="text-[14px] text-textPrimary font-bold font-cinzel">{totalXP}</div>
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 bg-accentAmber/10 border border-accentAmber/20 rounded-[10px] px-3.5 py-1.5">
+        <span className="text-[14px]">🪙</span>
+        <span className="text-[14px] text-accentAmber font-bold">{coins}</span>
+      </div>
+      <button 
+        onClick={onAvatarClick}
+        className="w-[36px] h-[36px] rounded-[10px] bg-gradient-to-br from-accentRust to-accentAmber flex items-center justify-center text-base cursor-pointer shadow-[0_0_12px_rgba(232,160,32,0.25)] hover:scale-105 transition"
+      >
+        {AVATAR_EMOJIS[user?.avatar || 'warrior']}
+      </button>
+    </div>
+  </div>
 );
 
 function App() {
@@ -318,56 +351,34 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-display">
-      {/* Main 3-Column Grid Layout */}
-      <div className="h-screen grid grid-cols-[80px_1fr_480px] gap-0">
-
-        {/* ========== LEFT SIDEBAR ========== */}
-        <aside className="relative z-50 bg-slate-900/50 backdrop-blur-xl border-r border-white/5 flex flex-col items-center py-6 gap-2 overflow-visible">
-          {/* User Level & Coins */}
-          <div className="mb-6 text-center">
-            <div className="flex flex-col items-center gap-2">
-              {/* Avatar (click to open settings) */}
-              <button
-                onClick={() => setShowSettings(true)}
-                className="w-12 h-12 rounded-xl bg-slate-800/50 border border-white/10 flex items-center justify-center text-2xl shadow-md hover:border-amber-400/60 transition"
-                aria-label="Open settings to change avatar"
-              >
-                {AVATAR_EMOJIS[user?.avatar || 'warrior']}
-              </button>
-              {/* Level */}
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-amber-500/30">
-                {Math.floor(pet.totalXp / 100) + 1}
-              </div>
-            </div>
-            <div className="mt-1 flex items-center justify-center gap-2">
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Avatar</p>
-              <span className="text-[10px] text-slate-500">•</span>
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Level</p>
-            </div>
+    <>
+      <div className="flex h-screen w-screen overflow-hidden bg-background font-sans text-textPrimary">
+      {/* ========== LEFT SIDEBAR ========== */}
+      <aside className="w-[60px] flex-shrink-0 relative z-50 bg-nav border-r border-borderSubtle flex flex-col items-center py-4 gap-1 overflow-visible">
+          {/* Avatar mini */}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-[38px] h-[38px] rounded-[10px] bg-gradient-to-br from-accentRust to-accentAmber flex items-center justify-center text-[17px] shadow-[0_0_14px_rgba(232,160,32,0.2)] mb-2 hover:scale-105 transition"
+            aria-label="Open settings"
+          >
+            {AVATAR_EMOJIS[user?.avatar || 'warrior']}
+          </button>
+          
+          {/* Level badge */}
+          <div className="text-[10px] text-accentAmber font-bold bg-accentAmber/10 rounded-md px-[7px] py-[2px] border border-accentAmber/20 mb-3 shadow-[0_0_8px_rgba(232,160,32,0.15)]">
+            Lv {Math.floor(pet.totalXp / 100) + 1}
           </div>
 
-          <motion.button
-            onClick={() => setShowShop(true)}
-            whileHover={{ scale: 1.05 }}
-            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-4"
-          >
-            <span className="text-lg">🪙</span>
-            <span className="text-xs font-bold text-amber-400">{coins}</span>
-          </motion.button>
-
-          <div className="flex-1 flex flex-col gap-2 overflow-visible">
+          <div className="flex-1 flex flex-col gap-1 overflow-visible">
             <NavItem icon={Home} label="Dashboard" active={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')} />
             <NavItem icon={Scroll} label="Adventure Log" active={activeView === 'log'} onClick={() => setActiveView('log')} />
             <NavItem icon={ShoppingBag} label="Shop" onClick={() => setShowShop(true)} />
             <NavItem icon={Timer} label="Focus Timer" active={activeView === 'focus'} onClick={() => setActiveView('focus')} />
             <NavItem icon={LineChart} label="Insights" active={activeView === 'insights'} onClick={() => setActiveView('insights')} />
-            <NavItem icon={Monitor} label="Ambient Mode" onClick={() => setShowAmbientMode(true)} />
-            <NavItem icon={BookOpen} label="Guide" onClick={() => setShowInfoModal(true)} />
           </div>
 
           {/* Bottom Actions */}
-          <div className="mt-auto flex flex-col gap-2 overflow-visible">
+          <div className="mt-auto flex flex-col gap-1 overflow-visible">
             <NavItem icon={Settings} label="Settings" onClick={() => setShowSettings(true)} />
             <motion.button
               onClick={() => {
@@ -375,19 +386,31 @@ function App() {
                 localStorage.removeItem('token');
               }}
               whileHover={{ scale: 1.1 }}
-              className="relative group p-3 rounded-xl text-red-400 hover:bg-red-500/10 transition"
+              className="relative group p-3 rounded-xl text-accentRust hover:bg-accentRust/10 transition"
             >
               <LogOut className="w-5 h-5" />
-              <span className="absolute left-14 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-800 text-xs text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[100] shadow-xl border border-white/10">
+              <span className="absolute left-14 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-surface text-xs text-textPrimary rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[100] shadow-xl border border-borderSubtle">
                 Logout
               </span>
             </motion.button>
           </div>
         </aside>
 
-        {/* ========== CENTER STAGE ========== */}
-        <main className="p-6 overflow-y-auto">
-          <AnimatePresence mode="wait">
+        {/* ========== MAIN AREA ========== */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-background">
+          <TopBar 
+            title={activeView === 'dashboard' ? `${user?.username || 'Adventurer'}'s Sanctuary` : activeView === 'log' ? 'Adventure Log' : activeView === 'insights' ? 'Analytics' : 'Focus'}
+            user={user}
+            dominant={dominant}
+            totalXP={pet.totalXp}
+            coins={coins}
+            onAvatarClick={() => setShowSettings(true)}
+          />
+          
+          <div className="flex-1 flex overflow-hidden">
+            {/* ========== CENTER STAGE ========== */}
+            <main className="flex-1 overflow-y-auto p-5 screen-enter">
+            <AnimatePresence mode="wait">
             {activeView === 'focus' ? (
               <motion.div
                 key="focus-timer"
@@ -433,243 +456,204 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-6"
+                className="flex gap-5 h-full"
               >
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <motion.p
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="text-sm uppercase tracking-[0.3em] text-amber-500/80 font-semibold"
-                    >
-                      Welcome Back
-                    </motion.p>
-                    <motion.h1
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className="text-3xl font-bold text-white mt-1"
-                    >
-                      {user?.username || 'Adventurer'}'s Sanctuary
-                    </motion.h1>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right px-4 py-2 bg-white/5 backdrop-blur border border-white/10 rounded-xl">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Dominant</p>
-                      <p className="text-lg font-bold text-amber-400 uppercase">{dominant}</p>
-                    </div>
-                    <div className="text-right px-4 py-2 bg-white/5 backdrop-blur border border-white/10 rounded-xl">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400">Total XP</p>
-                      <p className="text-lg font-bold text-white">{pet.totalXp}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pet Habitat Container */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="relative bg-gradient-to-b from-slate-800/80 to-slate-900/90 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl shadow-black/30 min-h-[560px]"
-                >
-                  {/* Radial gradient habitat background */}
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(251,191,36,0.08)_0%,transparent_60%)]" />
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.05)_0%,transparent_50%)]" />
-
-                  {/* Ambient glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-amber-500/5 via-transparent to-transparent pointer-events-none" />
-
-                  <div className="p-10 h-full flex items-center justify-center">
-                    <div className="w-full max-w-lg transform scale-110">
-                      <PetStage
-                        petType={pet.species}
-                        evolutionStage={pet.stage}
-                        totalXp={pet.totalXp}
-                        petState={petState}
-                        background={activeBackground}
-                        hp={pet.hp}
-                        petStats={pet.stats}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Habit Form */}
-                <AnimatePresence>
-                  {showHabitForm && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <HabitForm onSubmit={handleHabitCreate} onCancel={() => setShowHabitForm(false)} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </main>
-
-        {/* ========== RIGHT PANEL - Quest Log ========== */}
-        <aside className="bg-slate-900/30 backdrop-blur-xl border-l border-white/5 p-6 overflow-y-auto">
-          <div className="space-y-6">
-            {/* Stats Radar - Compact */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-4"
-            >
-              <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
-                <span>📊</span> Power Stats
-              </h3>
-              <div className="h-48">
-                <HabitRadar stats={pet.stats} />
-              </div>
-            </motion.div>
-
-            {/* Habit Recommendations */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.05 }}
-            >
-              <HabitRecommendations
-                refreshKey={heatmapRefreshKey}
-                onAddHabit={handleHabitCreate}
-              />
-            </motion.div>
-
-            {/* Productivity Heatmap */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <ProductivityHeatmap refreshKey={heatmapRefreshKey} />
-            </motion.div>
-
-            {/* Quest Board Header */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <span>📜</span> Quest Log
-              </h2>
-              <motion.button
-                onClick={() => setShowHabitForm(!showHabitForm)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg text-sm text-white font-semibold shadow-lg shadow-amber-500/25 transition"
-              >
-                + New Quest
-              </motion.button>
-            </div>
-
-            {/* Quest Cards */}
-            {habits.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-4"
-              >
-                {/* Empty Quest State */}
-                <div className="text-center py-8 bg-white/5 backdrop-blur border border-white/10 rounded-2xl">
-                  <p className="text-4xl mb-3">🗡️</p>
-                  <p className="text-slate-400 font-medium">No quests yet!</p>
-                  <p className="text-sm text-slate-500 mt-1">Begin your journey by creating a quest.</p>
-                </div>
-
-                {/* Daily Quote Card */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 backdrop-blur border border-amber-500/20 rounded-2xl p-5"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-5 h-5 text-amber-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wider text-amber-500/80 font-semibold mb-2">Daily Wisdom</p>
-                      <p className="text-white font-medium leading-relaxed italic">
-                        "{DAILY_QUOTES[new Date().getDay()].quote}"
-                      </p>
-                      <p className="text-sm text-slate-400 mt-2">
-                        — {DAILY_QUOTES[new Date().getDay()].author}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Quick Start Tips */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5"
-                >
-                  <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Quick Start</p>
-                  <ul className="space-y-2 text-sm text-slate-300">
-                    <li className="flex items-center gap-2">
-                      <span className="text-red-400">⚔️</span> Add <span className="text-red-400 font-semibold">STR</span> quests for physical activities
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-blue-400">📚</span> Add <span className="text-blue-400 font-semibold">INT</span> quests for learning & focus
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-emerald-400">🌿</span> Add <span className="text-emerald-400 font-semibold">SPI</span> quests for mindfulness
-                    </li>
-                  </ul>
-                </motion.div>
-              </motion.div>
-            ) : (
-              <div className="space-y-4">
-                {['STR', 'INT', 'SPI'].map((category, categoryIndex) => {
-                  const categoryHabits = habitsByCategory[category] || [];
-                  if (categoryHabits.length === 0) return null;
-
-                  const categoryConfig = {
-                    STR: { icon: '⚔️', label: 'Strength', accent: 'border-l-red-500', bg: 'from-red-500/10' },
-                    INT: { icon: '📚', label: 'Intellect', accent: 'border-l-blue-500', bg: 'from-blue-500/10' },
-                    SPI: { icon: '🌿', label: 'Spirit', accent: 'border-l-emerald-500', bg: 'from-emerald-500/10' }
-                  };
-                  const config = categoryConfig[category];
-
-                  return (
-                    <motion.div
-                      key={category}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 * categoryIndex }}
-                    >
-                      <h4 className="text-xs uppercase tracking-[0.2em] text-slate-400 mb-3 flex items-center gap-2">
-                        <span>{config.icon}</span> {config.label} Quests
-                      </h4>
-                      <div className="space-y-2">
-                        {categoryHabits.map((habit, habitIndex) => (
-                          <motion.div
-                            key={habit._id}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.1 * categoryIndex + 0.05 * habitIndex }}
-                          >
-                            <QuestCard
-                              habit={habit}
-                              onComplete={requestHabitCompletion}
-                              onReset={handleHabitReset}
-                              onDelete={handleHabitDelete}
-                            />
-                          </motion.div>
-                        ))}
+                {/* Left: companion */}
+                <div className="w-[380px] flex-shrink-0 flex flex-col">
+                  <div className="flex-1 bg-surfaceElevated border border-borderSubtle rounded-[16px] relative overflow-hidden flex flex-col">
+                    {/* Stage label */}
+                    <div className="px-5 pt-4 flex justify-between items-center z-10 relative">
+                      <div>
+                        <div className="text-[9px] tracking-[2px] text-textMuted font-bold uppercase mb-0.5">Your Companion</div>
+                        <div className="text-2xl text-textPrimary font-cinzel font-bold">Stage {pet.stage}</div>
                       </div>
+                      <div className="text-[11px] text-accentAmber bg-accentAmber/10 border border-accentAmber/20 rounded-[20px] px-3 py-1 font-semibold tracking-wide">
+                        ✦ {pet.stage * 1000 - pet.totalXp > 0 ? pet.stage * 1000 - pet.totalXp : 0} XP to evolve
+                      </div>
+                    </div>
+
+                    <PetStage
+                      petType={pet.species}
+                      evolutionStage={pet.stage}
+                      totalXp={pet.totalXp}
+                      petState={petState}
+                      background={activeBackground}
+                      hp={pet.hp}
+                      petStats={pet.stats}
+                    />
+                  </div>
+                </div>
+
+                {/* Right: habits */}
+                <div className="flex-1 flex flex-col overflow-y-auto pr-1 scrollbar-none">
+                  {/* Header & Add Button */}
+                  <div className="flex items-center justify-between mb-4 mt-1">
+                    <div className="text-[11px] text-textMuted font-bold tracking-[1.5px] uppercase">
+                      Today's Habits — {habits.filter(h => h.isCompletedToday).length}/{habits.length} done
+                    </div>
+                    <motion.button
+                      onClick={() => setShowHabitForm(!showHabitForm)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-3 py-1.5 bg-gradient-to-r from-accentRust to-accentAmber rounded-[8px] text-[10px] text-background font-bold tracking-[1px] uppercase shadow-[0_0_12px_rgba(232,160,32,0.3)] transition"
+                    >
+                      + New Quest
+                    </motion.button>
+                  </div>
+
+                  {/* Habit Form */}
+                  <AnimatePresence>
+                    {showHabitForm && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mb-4"
+                      >
+                        <HabitForm onSubmit={handleHabitCreate} onCancel={() => setShowHabitForm(false)} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Quest Cards */}
+                  {habits.length === 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="space-y-4"
+                    >
+                      {/* Empty Quest State */}
+                      <div className="text-center py-8 bg-surfaceElevated backdrop-blur border border-borderSubtle rounded-2xl shadow-lg">
+                        <p className="text-4xl mb-3">🗡️</p>
+                        <p className="text-textMuted font-medium">No quests yet!</p>
+                        <p className="text-[11px] text-textMuted mt-1 uppercase font-bold tracking-widest">Begin your journey by creating a quest.</p>
+                      </div>
+
+                      {/* Daily Quote Card */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-surfaceElevated border border-accentAmber/20 rounded-[12px] p-4 relative overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-accentAmber/10 to-transparent pointer-events-none" />
+                        <div className="relative flex items-start gap-3 z-10">
+                          <div className="w-10 h-10 rounded-xl bg-accentAmber/20 flex items-center justify-center flex-shrink-0 border border-accentAmber/30">
+                            <Sparkles className="w-5 h-5 text-accentAmber" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[2px] text-accentAmber font-bold mb-1">Daily Wisdom</p>
+                            <p className="text-textPrimary font-medium leading-relaxed italic text-sm">
+                              "{DAILY_QUOTES[new Date().getDay()]?.quote}"
+                            </p>
+                            <p className="text-xs text-textMuted mt-2 font-semibold">
+                              — {DAILY_QUOTES[new Date().getDay()]?.author}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      {/* Quick Start Tips */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-surfaceElevated border border-borderSubtle rounded-[12px] p-4"
+                      >
+                        <p className="text-[10px] uppercase tracking-[2px] text-textMuted font-bold mb-3">Quick Start Guide</p>
+                        <ul className="space-y-2.5 text-xs text-textPrimary">
+                          <li className="flex items-center gap-2.5">
+                            <span className="w-6 h-6 rounded bg-statSTR/20 text-statSTR flex items-center justify-center border border-statSTR/30">⚔️</span> 
+                            <span>Add <span className="text-statSTR font-bold">STR</span> quests for physical activities</span>
+                          </li>
+                          <li className="flex items-center gap-2.5">
+                            <span className="w-6 h-6 rounded bg-statINT/20 text-statINT flex items-center justify-center border border-statINT/30">📚</span> 
+                            <span>Add <span className="text-statINT font-bold">INT</span> quests for learning & focus</span>
+                          </li>
+                          <li className="flex items-center gap-2.5">
+                            <span className="w-6 h-6 rounded bg-statSPI/20 text-statSPI flex items-center justify-center border border-statSPI/30">🌿</span> 
+                            <span>Add <span className="text-statSPI font-bold">SPI</span> quests for mindfulness</span>
+                          </li>
+                        </ul>
+                      </motion.div>
                     </motion.div>
-                  );
-                })}
-              </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {habits.map((habit, habitIndex) => (
+                        <motion.div
+                          key={habit._id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.05 * habitIndex }}
+                        >
+                          <QuestCard
+                            habit={habit}
+                            onComplete={requestHabitCompletion}
+                            onReset={handleHabitReset}
+                            onDelete={handleHabitDelete}
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             )}
+            </AnimatePresence>
+            </main>
+
+            {/* ========== RIGHT SIDEBAR ========== */}
+            <aside className="w-[260px] min-w-[260px] bg-sidebar border-l border-borderSubtle p-4 overflow-y-auto scrollbar-none">
+              <div className="space-y-6">
+                {/* Stats Radar - Compact */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-surfaceElevated border border-borderSubtle rounded-[12px] p-3.5"
+                >
+                  <div className="flex items-center gap-[7px] mb-3">
+                    <span className="text-[13px] opacity-80">⚔</span>
+                    <h3 className="text-[11px] font-bold text-textPrimary tracking-[1px] uppercase font-cinzel">Power Stats</h3>
+                  </div>
+                  <div className="h-48">
+                    <HabitRadar stats={pet.stats} />
+                  </div>
+                </motion.div>
+
+                {/* Habit Recommendations */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 }}
+                >
+                  <HabitRecommendations
+                    refreshKey={heatmapRefreshKey}
+                    onAddHabit={handleHabitCreate}
+                  />
+                </motion.div>
+
+                {/* Productivity Heatmap */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <ProductivityHeatmap refreshKey={heatmapRefreshKey} />
+                </motion.div>
+
+                {/* Mini Quest Log (Replacing the old Quest Cards here) */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15 }}
+                >
+                  <MiniQuestLog habits={habits} />
+                </motion.div>
+
+              </div>
+            </aside>
           </div>
-        </aside>
+        </div>
       </div>
 
       {/* Modals */}
@@ -728,7 +712,7 @@ function App() {
           timerState={timerState}
         />
       )}
-    </div>
+    </>
   );
 }
 
