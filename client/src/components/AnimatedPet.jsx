@@ -297,7 +297,7 @@ export default function AnimatedPet({ species, totalXp, stage, forcedState, ambi
           <motion.img
             src={getPetImageByStage()}
             alt={`${species} pet`}
-            className={`${large ? 'w-52 h-52' : 'w-32 h-32'} object-contain relative z-10 drop-shadow-2xl`}
+            className={`${large ? 'w-72 h-72' : 'w-32 h-32'} object-contain relative z-10 drop-shadow-2xl`}
             style={{
               filter: isSleeping ? 'brightness(0.7) grayscale(0.3)' : 'brightness(1.1)',
               imageRendering: 'pixelated'
