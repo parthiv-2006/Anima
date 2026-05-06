@@ -16,9 +16,9 @@ const statLabels = {
 };
 
 const statColors = {
-  STR: 'from-red-500 to-orange-500',
-  INT: 'from-blue-500 to-cyan-500',
-  SPI: 'from-purple-500 to-pink-500'
+  STR: 'from-statSTR/80 to-statSTR',
+  INT: 'from-statINT/80 to-statINT',
+  SPI: 'from-statSPI/80 to-statSPI'
 };
 
 export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, refreshKey = 0 }) {
@@ -67,14 +67,14 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
 
   if (loading) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur">
+      <div className="bg-surface border border-borderSubtle rounded-2xl p-4 backdrop-blur shadow-lg">
         <div className="flex items-center gap-2 mb-3">
-          <Lightbulb className="w-5 h-5 text-amber-400" />
-          <h2 className="text-base font-bold text-white">AI Recommendations</h2>
+          <Lightbulb className="w-5 h-5 text-accentAmber drop-shadow-[0_0_8px_rgba(232,160,32,0.4)]" />
+          <h2 className="text-base font-bold text-textPrimary font-cinzel tracking-wide">AI Recommendations</h2>
         </div>
         <div className="space-y-2">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-16 bg-white/5 rounded-lg animate-pulse" />
+            <div key={i} className="h-16 bg-surfaceElevated rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
@@ -83,12 +83,12 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
 
   if (error) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur">
+      <div className="bg-surface border border-borderSubtle rounded-2xl p-4 backdrop-blur shadow-lg">
         <div className="flex items-center gap-2 mb-3">
-          <Lightbulb className="w-5 h-5 text-amber-400" />
-          <h2 className="text-base font-bold text-white">AI Recommendations</h2>
+          <Lightbulb className="w-5 h-5 text-accentAmber drop-shadow-[0_0_8px_rgba(232,160,32,0.4)]" />
+          <h2 className="text-base font-bold text-textPrimary font-cinzel tracking-wide">AI Recommendations</h2>
         </div>
-        <p className="text-slate-400 text-xs">
+        <p className="text-accentRust text-xs font-bold">
           {error}
         </p>
       </div>
@@ -97,12 +97,12 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
 
   if (recommendations.length === 0) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur">
-        <div className="flex items-center gap-2 mb-3">
-          <Lightbulb className="w-5 h-5 text-amber-400" />
-          <h2 className="text-base font-bold text-white">AI Recommendations</h2>
+      <div className="bg-surfaceElevated border border-borderSubtle rounded-[12px] p-3.5 mb-2.5">
+        <div className="flex items-center gap-[7px] mb-3">
+          <span className="text-[13px] opacity-80">💡</span>
+          <h2 className="text-[11px] font-bold text-textPrimary tracking-[1px] uppercase font-cinzel">AI Recommendations</h2>
         </div>
-        <p className="text-slate-400 text-xs">
+        <p className="text-textMuted text-xs font-bold uppercase tracking-wider">
           Loading recommendations...
         </p>
       </div>
@@ -110,10 +110,10 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
   }
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur space-y-3 relative">
-      <div className="flex items-center gap-2">
-        <Lightbulb className="w-5 h-5 text-amber-400" />
-        <h2 className="text-base font-bold text-white">AI Recommendations</h2>
+    <div className="bg-surfaceElevated border border-borderSubtle rounded-[12px] p-3.5 mb-2.5 space-y-3 relative">
+      <div className="flex items-center gap-[7px]">
+        <span className="text-[13px] opacity-80">💡</span>
+        <h2 className="text-[11px] font-bold text-textPrimary tracking-[1px] uppercase font-cinzel">AI Recommendations</h2>
       </div>
 
       {/* Success Toast */}
@@ -124,7 +124,7 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
           exit={{ opacity: 0, y: -10 }}
           className="absolute -top-16 left-1/2 -translate-x-1/2 z-50"
         >
-          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-green-500/30 flex items-center gap-2 whitespace-nowrap">
+          <div className="bg-success text-background px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wider shadow-[0_0_15px_rgba(34,197,94,0.3)] flex items-center gap-2 whitespace-nowrap">
             <span>✓</span>
             <span>{successToast.name} added!</span>
           </div>
@@ -144,27 +144,27 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
               onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
               className={`w-full p-3 rounded-lg border transition-all text-left ${
                 rec.priority === 'high'
-                  ? 'bg-red-500/10 border-red-500/30 hover:border-red-500/50'
-                  : 'bg-white/5 border-white/10 hover:border-white/20'
+                  ? 'bg-accentRust/10 border-accentRust/30 hover:border-accentRust/50'
+                  : 'bg-surfaceElevated border-borderSubtle hover:border-accentAmber/30'
               }`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-start gap-2 flex-1 min-w-0">
-                  <div className={`p-1.5 rounded-lg bg-gradient-to-br ${statColors[rec.statCategory]} text-white flex-shrink-0`}>
+                  <div className={`p-1.5 rounded-lg bg-gradient-to-br ${statColors[rec.statCategory]} text-background flex-shrink-0 shadow-md`}>
                     {statIcons[rec.statCategory]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-white text-sm">{rec.name}</h3>
-                      <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 ${
-                        rec.difficulty === 1 ? 'bg-green-500/20 text-green-300' :
-                        rec.difficulty === 2 ? 'bg-yellow-500/20 text-yellow-300' :
-                        'bg-red-500/20 text-red-300'
+                      <h3 className="font-bold text-textPrimary text-sm">{rec.name}</h3>
+                      <span className={`text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 ${
+                        rec.difficulty === 1 ? 'bg-success/20 text-success' :
+                        rec.difficulty === 2 ? 'bg-accentAmber/20 text-accentAmber' :
+                        'bg-accentRust/20 text-accentRust'
                       }`}>
                         {rec.difficulty === 1 ? 'Easy' : rec.difficulty === 2 ? 'Med' : 'Hard'}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{rec.message}</p>
+                    <p className="text-[11px] font-medium text-textMuted mt-1">{rec.message}</p>
                   </div>
                 </div>
                 <motion.button
@@ -174,7 +174,7 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
                   }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-2.5 py-1 bg-amber-500 text-white rounded-lg text-xs font-medium hover:bg-amber-600 transition whitespace-nowrap flex-shrink-0"
+                  className="px-3 py-1 bg-accentAmber text-background rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-opacity-90 transition whitespace-nowrap flex-shrink-0 shadow-[0_0_8px_rgba(232,160,32,0.3)]"
                 >
                   Add
                 </motion.button>
@@ -186,12 +186,12 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-2 pt-2 border-t border-white/10"
+                  className="mt-2 pt-2 border-t border-borderSubtle"
                 >
-                  <p className="text-xs text-slate-300">
-                    <strong>Why:</strong> {rec.reason}
+                  <p className="text-xs text-textPrimary">
+                    <strong className="text-accentAmber">Why:</strong> {rec.reason}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1.5">
+                  <p className="text-[10px] text-textMuted uppercase font-bold tracking-widest mt-1.5">
                     Boosts {statLabels[rec.statCategory]}.
                   </p>
                 </motion.div>
@@ -201,7 +201,7 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
         ))}
       </div>
 
-      <p className="text-xs text-slate-500 text-center pt-1">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-textMuted text-center pt-1 drop-shadow-sm">
         💡 Tailored to your weakest stats
       </p>
     </div>

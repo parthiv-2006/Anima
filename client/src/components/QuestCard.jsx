@@ -3,22 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const categoryConfig = {
   STR: { 
-    gradient: 'from-red-500/20 to-orange-500/10', 
-    border: 'border-l-red-500',
-    accent: 'text-red-400',
-    glow: 'shadow-red-500/20'
+    gradient: 'from-statSTR/20 to-statSTR/5', 
+    border: 'border-l-statSTR',
+    accent: 'text-statSTR',
+    glow: 'shadow-[0_0_8px_rgba(232,160,32,0.4)]'
   },
   INT: { 
-    gradient: 'from-blue-500/20 to-cyan-500/10', 
-    border: 'border-l-blue-500',
-    accent: 'text-blue-400',
-    glow: 'shadow-blue-500/20'
+    gradient: 'from-statINT/20 to-statINT/5', 
+    border: 'border-l-statINT',
+    accent: 'text-statINT',
+    glow: 'shadow-[0_0_8px_rgba(59,130,246,0.4)]'
   },
   SPI: { 
-    gradient: 'from-emerald-500/20 to-green-500/10', 
-    border: 'border-l-emerald-500',
-    accent: 'text-emerald-400',
-    glow: 'shadow-emerald-500/20'
+    gradient: 'from-statSPI/20 to-statSPI/5', 
+    border: 'border-l-statSPI',
+    accent: 'text-statSPI',
+    glow: 'shadow-[0_0_8px_rgba(34,197,94,0.4)]'
   }
 };
 
@@ -70,10 +70,10 @@ function QuestCard({ habit, onComplete, onReset, onDelete }) {
         disabled={habit.isCompletedToday}
         whileHover={{ scale: habit.isCompletedToday ? 1 : 1.02, y: habit.isCompletedToday ? 0 : -2 }}
         whileTap={{ scale: habit.isCompletedToday ? 1 : 0.98 }}
-        className={`relative w-full text-left bg-slate-800/50 backdrop-blur-sm border-l-4 ${config.border} rounded-xl p-4 overflow-hidden transition-all duration-300 ${
+        className={`relative w-full text-left bg-surfaceElevated backdrop-blur-sm border-l-[3px] ${config.border} rounded-[12px] p-4 overflow-hidden transition-all duration-300 ${
           habit.isCompletedToday
-            ? 'opacity-60 cursor-not-allowed border-r border-t border-b border-green-500/30'
-            : `border-r border-t border-b border-white/5 hover:border-white/10 hover:shadow-lg ${config.glow}`
+            ? 'opacity-50 cursor-not-allowed border-r border-t border-b border-success/30 line-through'
+            : `border-r border-t border-b border-borderSubtle hover:border-borderSubtle hover:${config.glow}`
         }`}
       >
         {/* Background gradient */}
@@ -83,33 +83,32 @@ function QuestCard({ habit, onComplete, onReset, onDelete }) {
         <div className="relative flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className={`text-xs font-bold uppercase tracking-wider ${config.accent}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${config.accent}`}>
                 {habit.statCategory}
               </span>
               {habit.streak > 0 && (
-                <span className="flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-[10px] font-bold text-accentAmber bg-accentAmber/10 px-2 py-0.5 rounded-md border border-accentAmber/20">
                   <span>🔥</span> {habit.streak}
                 </span>
               )}
             </div>
-            <p className="font-semibold text-white truncate">{habit.name}</p>
+            <p className={`font-semibold text-textPrimary truncate ${habit.isCompletedToday ? 'text-textMuted' : ''}`}>{habit.name}</p>
             <div className="flex items-center gap-3 mt-2">
-              <span className="text-xs text-slate-400">
-                {'★'.repeat(habit.difficulty)}{'☆'.repeat(3 - habit.difficulty)}
+              <span className="text-xs text-accentAmber">
+                {'★'.repeat(habit.difficulty)}<span className="text-textMuted">{'★'.repeat(3 - habit.difficulty)}</span>
               </span>
-              <span className="text-xs text-slate-400">+{xpReward} XP</span>
-              <span className={`text-xs ${config.accent}`}>+{statReward} {habit.statCategory}</span>
+              <span className="text-xs text-accentAmber font-bold">+{xpReward} XP</span>
+              <span className={`text-xs font-bold ${config.accent}`}>+{statReward} {habit.statCategory}</span>
             </div>
           </div>
           
           {/* Completion indicator */}
           {habit.isCompletedToday ? (
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-              <span className="text-green-400 text-sm">✓</span>
+            <div className="flex-shrink-0 w-6 h-6 rounded-md bg-success/20 border border-success/30 flex items-center justify-center shadow-[0_0_8px_rgba(34,197,94,0.4)]">
+              <span className="text-success text-sm font-bold">✓</span>
             </div>
           ) : (
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-amber-500/20 group-hover:border-amber-500/30 transition-colors">
-              <span className="text-slate-400 group-hover:text-amber-400 text-sm transition-colors">▶</span>
+            <div className="flex-shrink-0 w-6 h-6 rounded-md bg-transparent border border-borderSubtle flex items-center justify-center group-hover:bg-success/10 group-hover:border-success/30 transition-colors">
             </div>
           )}
         </div>
@@ -135,9 +134,9 @@ function QuestCard({ habit, onComplete, onReset, onDelete }) {
       <div className="absolute top-2 right-2 z-10">
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="p-1 rounded hover:bg-white/10 transition text-slate-400 hover:text-slate-200"
+          className="p-1 rounded hover:bg-surface transition text-textMuted hover:text-textPrimary"
         >
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
           </svg>
         </button>
@@ -148,19 +147,19 @@ function QuestCard({ habit, onComplete, onReset, onDelete }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="absolute right-0 mt-1 bg-slate-800 border border-white/10 rounded-lg shadow-xl overflow-hidden"
+              className="absolute right-0 mt-1 bg-surface border border-borderSubtle rounded-lg shadow-xl overflow-hidden"
             >
               {habit.isCompletedToday && (
                 <button
                   onClick={handleReset}
-                  className="block w-full px-4 py-2 text-left text-sm text-slate-200 hover:bg-white/10 transition"
+                  className="block w-full px-4 py-2 text-left text-sm text-textPrimary hover:bg-surfaceElevated transition"
                 >
                   ↺ Reset
                 </button>
               )}
               <button
                 onClick={handleDelete}
-                className="block w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 transition"
+                className="block w-full px-4 py-2 text-left text-sm text-accentRust hover:bg-accentRust/10 transition"
               >
                 🗑 Delete
               </button>
