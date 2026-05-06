@@ -464,13 +464,13 @@ function App() {
                 <div className="w-[380px] flex-shrink-0 flex flex-col">
                   <div className="flex-1 bg-surfaceElevated border border-borderSubtle rounded-[16px] relative overflow-hidden flex flex-col">
                     {/* Stage label */}
-                    <div className="px-5 pt-4 flex justify-between items-center z-10 relative">
+                    <div className="px-5 pt-4 flex justify-between items-center z-10 relative shrink-0">
                       <div>
                         <div className="text-[9px] tracking-[2px] text-textMuted font-bold uppercase mb-0.5">Your Companion</div>
                         <div className="text-2xl text-textPrimary font-cinzel font-bold">Stage {pet.stage}</div>
                       </div>
                       <div className="text-[11px] text-accentAmber bg-accentAmber/10 border border-accentAmber/20 rounded-[20px] px-3 py-1 font-semibold tracking-wide">
-                        ✦ {pet.stage * 1000 - pet.totalXp > 0 ? pet.stage * 1000 - pet.totalXp : 0} XP to evolve
+                        ✦ {Math.max((pet.stage === 1 ? 100 : 500) - pet.totalXp, 0)} XP to evolve
                       </div>
                     </div>
 
