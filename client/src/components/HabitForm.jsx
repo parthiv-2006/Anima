@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const STAT_CATEGORIES = [
-  { value: 'STR', label: 'Strength', color: 'from-amber-500 to-red-500', description: 'Physical & discipline' },
-  { value: 'INT', label: 'Intellect', color: 'from-sky-500 to-blue-500', description: 'Learning & creativity' },
-  { value: 'SPI', label: 'Spirit', color: 'from-emerald-500 to-lime-500', description: 'Wellness & mindfulness' }
+  { value: 'STR', label: 'Strength', color: 'bg-statSTR', description: 'Physical & discipline' },
+  { value: 'INT', label: 'Intellect', color: 'bg-statINT', description: 'Learning & creativity' },
+  { value: 'SPI', label: 'Spirit', color: 'bg-statSPI', description: 'Wellness & mindfulness' }
 ];
 
 const DIFFICULTY_LEVELS = [
@@ -37,24 +37,25 @@ export default function HabitForm({ onSubmit, onCancel }) {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur"
+      className="bg-surfaceElevated border border-borderSubtle rounded-2xl p-6 backdrop-blur shadow-2xl relative overflow-hidden"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Create New Habit</h3>
+      <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+      <div className="relative flex items-center justify-between mb-6 border-b border-borderSubtle pb-4">
+        <h3 className="text-lg font-bold text-textPrimary font-cinzel">Create New Habit</h3>
         {onCancel && (
           <button
             onClick={onCancel}
-            className="text-slate-400 hover:text-slate-200 text-sm"
+            className="text-[10px] uppercase font-bold tracking-widest text-textMuted hover:text-textPrimary transition"
           >
             Cancel
           </button>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="relative space-y-5">
         {/* Habit Name */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-[10px] uppercase tracking-widest font-bold text-textMuted mb-2 drop-shadow-sm">
             Habit Name
           </label>
           <input
@@ -62,14 +63,14 @@ export default function HabitForm({ onSubmit, onCancel }) {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="e.g., Read 10 pages, Gym session, Meditate 10m"
-            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-white/30"
+            className="w-full px-4 py-3 bg-surface border border-borderSubtle rounded-[10px] text-textPrimary placeholder-textMuted/50 focus:outline-none focus:border-accentAmber focus:ring-1 focus:ring-accentAmber/30 transition shadow-inner font-sans text-sm"
           />
-          {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+          {error && <p className="text-accentRust text-[10px] uppercase tracking-wider font-bold mt-1.5">{error}</p>}
         </div>
 
         {/* Category Selection */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-[10px] uppercase tracking-widest font-bold text-textMuted mb-2 drop-shadow-sm">
             Quest Category
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -78,16 +79,19 @@ export default function HabitForm({ onSubmit, onCancel }) {
                 key={cat.value}
                 type="button"
                 onClick={() => setFormData({ ...formData, statCategory: cat.value })}
-                className={`relative p-3 rounded-lg border transition ${
+                className={`relative p-3 rounded-[10px] border transition shadow-md overflow-hidden ${
                   formData.statCategory === cat.value
-                    ? 'border-white/30 bg-white/10'
-                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                    ? 'border-accentAmber/50 bg-surface text-textPrimary'
+                    : 'border-borderSubtle bg-surface hover:bg-surfaceElevated text-textMuted'
                 }`}
               >
-                <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${cat.color} opacity-20`} />
-                <div className="relative">
-                  <p className="font-semibold text-sm">{cat.label}</p>
-                  <p className="text-xs text-slate-400">{cat.description}</p>
+                <div className={`absolute inset-0 ${cat.color} opacity-20`} />
+                {formData.statCategory === cat.value && (
+                  <div className={`absolute inset-0 bg-gradient-to-t from-${cat.color.replace('bg-', '')}/30 to-transparent pointer-events-none`} />
+                )}
+                <div className="relative z-10">
+                  <p className="font-bold text-xs uppercase tracking-wider">{cat.label}</p>
+                  <p className="text-[9px] mt-1 opacity-80">{cat.description}</p>
                 </div>
               </button>
             ))}
@@ -96,7 +100,7 @@ export default function HabitForm({ onSubmit, onCancel }) {
 
         {/* Difficulty Selection */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-[10px] uppercase tracking-widest font-bold text-textMuted mb-2 drop-shadow-sm">
             Difficulty
           </label>
           <div className="flex gap-2">
@@ -105,14 +109,14 @@ export default function HabitForm({ onSubmit, onCancel }) {
                 key={diff.value}
                 type="button"
                 onClick={() => setFormData({ ...formData, difficulty: diff.value })}
-                className={`flex-1 px-4 py-2 rounded-lg border transition ${
+                className={`flex-1 px-4 py-2.5 rounded-[10px] border transition shadow-sm ${
                   formData.difficulty === diff.value
-                    ? 'border-amber-500/50 bg-amber-500/10 text-amber-200'
-                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                    ? 'border-accentAmber bg-accentAmber/10 text-accentAmber shadow-[0_0_8px_rgba(232,160,32,0.2)]'
+                    : 'border-borderSubtle bg-surface hover:bg-surfaceElevated text-textMuted'
                 }`}
               >
-                <p className="font-semibold text-sm">{diff.label}</p>
-                <p className="text-xs opacity-70">+{diff.xp} XP</p>
+                <p className="font-bold text-xs uppercase tracking-wider">{diff.label}</p>
+                <p className="text-[10px] opacity-70 font-bold">+{diff.xp} XP</p>
               </button>
             ))}
           </div>
@@ -121,7 +125,7 @@ export default function HabitForm({ onSubmit, onCancel }) {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg font-semibold text-white transition"
+          className="w-full mt-4 px-4 py-3.5 bg-gradient-to-r from-accentRust to-accentAmber hover:from-accentAmber hover:to-accentRust rounded-[10px] font-bold text-xs uppercase tracking-widest text-background shadow-[0_0_15px_rgba(232,160,32,0.3)] hover:shadow-[0_0_20px_rgba(232,160,32,0.5)] transition-all transform hover:-translate-y-0.5"
         >
           Add Habit Quest
         </button>

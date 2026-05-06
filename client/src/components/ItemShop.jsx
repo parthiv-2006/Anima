@@ -124,26 +124,26 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[85vh] overflow-hidden"
+          className="bg-surface backdrop-blur-xl border border-borderSubtle rounded-3xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.8)]"
         >
           {/* Header */}
-          <div className="p-6 border-b border-white/10">
+          <div className="p-6 border-b border-borderSubtle bg-surfaceElevated">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">🏪</span>
+                <span className="text-3xl drop-shadow-[0_0_8px_rgba(232,160,32,0.4)]">🏪</span>
                 <div>
-                  <h2 className="text-2xl font-bold">Item Shop</h2>
-                  <p className="text-slate-400 text-sm">Spend your hard-earned coins!</p>
+                  <h2 className="text-2xl font-bold text-textPrimary font-cinzel">Item Shop</h2>
+                  <p className="text-textMuted text-sm font-sans">Spend your hard-earned coins!</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/20 border border-amber-500/30 rounded-full">
+                <div className="flex items-center gap-2 px-4 py-2 bg-accentAmber/10 border border-accentAmber/30 rounded-full shadow-[0_0_12px_rgba(232,160,32,0.2)]">
                   <span className="text-xl">🪙</span>
-                  <span className="font-bold text-amber-300">{coins}</span>
+                  <span className="font-bold text-accentAmber">{coins}</span>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-white/10 rounded-lg transition"
+                  className="p-2 text-textMuted hover:text-textPrimary hover:bg-surface rounded-lg transition"
                 >
                   <span className="text-xl">✕</span>
                 </button>
@@ -156,10 +156,10 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition uppercase tracking-wider text-xs ${
                     activeTab === tab.id
-                      ? 'bg-amber-500 text-white'
-                      : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                      ? 'bg-accentAmber text-background shadow-[0_0_12px_rgba(232,160,32,0.4)]'
+                      : 'bg-surface text-textMuted hover:text-textPrimary hover:bg-surfaceElevated border border-borderSubtle'
                   }`}
                 >
                   <span>{tab.emoji}</span>
@@ -169,10 +169,10 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
               {activeTab === 'background' && inventory?.activeBackground !== 'default' && (
                 <button
                   onClick={() => handleSetBackground('default')}
-                  className="ml-auto px-4 py-2 bg-slate-700/50 hover:bg-slate-700/70 border border-slate-600/50 rounded-lg text-slate-300 text-sm font-semibold transition flex items-center gap-2"
+                  className="ml-auto px-4 py-2 bg-surface hover:bg-surfaceElevated border border-borderSubtle rounded-lg text-textMuted hover:text-textPrimary text-xs font-bold transition flex items-center gap-2 uppercase tracking-wider"
                 >
                   <span>🏠</span>
-                  <span>Reset to Default</span>
+                  <span>Reset Default</span>
                 </button>
               )}
             </div>
@@ -185,10 +185,10 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className={`mx-6 mt-4 px-4 py-2 rounded-lg ${
+                className={`mx-6 mt-4 px-4 py-2 rounded-lg font-bold text-sm text-center ${
                   error 
-                    ? 'bg-red-500/20 border border-red-500/30 text-red-300' 
-                    : 'bg-green-500/20 border border-green-500/30 text-green-300'
+                    ? 'bg-accentRust/20 border border-accentRust/30 text-accentRust' 
+                    : 'bg-success/20 border border-success/30 text-success'
                 }`}
               >
                 {error || successMessage}
@@ -197,11 +197,11 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
           </AnimatePresence>
 
           {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(85vh-200px)]">
+          <div className="p-6 overflow-y-auto max-h-[calc(85vh-200px)] custom-scrollbar">
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin text-4xl mb-4">⏳</div>
-                <p className="text-slate-400">Loading shop...</p>
+                <p className="text-textMuted font-bold">Loading shop...</p>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -212,10 +212,10 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     whileHover={{ y: -4 }}
-                    className={`relative bg-white/5 border rounded-2xl p-5 transition ${
+                    className={`relative bg-surface border rounded-2xl p-5 transition shadow-lg ${
                       item.owned 
-                        ? 'border-green-500/30 bg-green-500/5' 
-                        : 'border-white/10 hover:border-white/20'
+                        ? 'border-success/30 bg-success/5 shadow-[0_0_12px_rgba(34,197,94,0.1)]' 
+                        : 'border-borderSubtle hover:border-accentAmber/50 hover:shadow-[0_0_15px_rgba(232,160,32,0.15)]'
                     }`}
                   >
                     {/* Background preview for background items */}
@@ -226,19 +226,19 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                     <div className="relative">
                       {/* Owned badge */}
                       {item.owned && (
-                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        <div className="absolute -top-2 -right-2 bg-success text-background text-[10px] font-bold px-2 py-1 rounded-md tracking-wider uppercase shadow-[0_0_8px_rgba(34,197,94,0.4)]">
                           ✓ Owned
                         </div>
                       )}
 
                       {/* Item emoji */}
-                      <div className="text-5xl mb-3 text-center">
+                      <div className="text-5xl mb-3 text-center drop-shadow-xl">
                         {item.emoji}
                       </div>
 
                       {/* Item info */}
-                      <h3 className="font-bold text-lg mb-1">{item.name}</h3>
-                      <p className="text-sm text-slate-400 mb-4 line-clamp-2">
+                      <h3 className="font-bold text-lg mb-1 text-textPrimary">{item.name}</h3>
+                      <p className="text-xs text-textMuted mb-4 line-clamp-2">
                         {item.description}
                       </p>
 
@@ -246,7 +246,7 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
                           <span>🪙</span>
-                          <span className={`font-bold ${coins >= item.price ? 'text-amber-300' : 'text-red-400'}`}>
+                          <span className={`font-bold ${coins >= item.price ? 'text-accentAmber' : 'text-accentRust'}`}>
                             {item.price}
                           </span>
                         </div>
@@ -256,10 +256,10 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                             <button
                               onClick={() => handleSetBackground(item.id)}
                               disabled={inventory?.activeBackground === item.id}
-                              className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
+                              className={`px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition ${
                                 inventory?.activeBackground === item.id
-                                  ? 'bg-green-500/20 text-green-300 cursor-default'
-                                  : 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300'
+                                  ? 'bg-success/10 text-success border border-success/30 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.2)]'
+                                  : 'bg-surfaceElevated hover:bg-surface text-textPrimary border border-borderSubtle'
                               }`}
                             >
                               {inventory?.activeBackground === item.id ? '✓ Active' : 'Set Active'}
@@ -270,7 +270,7 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                               whileTap={{ scale: 0.95 }}
                               onClick={() => handlePurchase(item)}
                               disabled={purchasing === item.id || coins < item.price}
-                              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg font-semibold text-sm text-white transition disabled:opacity-50"
+                              className="px-4 py-2 bg-gradient-to-r from-accentRust to-accentAmber hover:from-accentAmber hover:to-accentRust rounded-lg font-bold text-xs uppercase tracking-wider text-background shadow-[0_0_12px_rgba(232,160,32,0.3)] transition disabled:opacity-50 disabled:grayscale"
                             >
                               {purchasing === item.id ? '...' : 'Buy'}
                             </motion.button>
@@ -282,7 +282,7 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                               whileTap={{ scale: 0.95 }}
                               onClick={() => handlePurchase(item)}
                               disabled={purchasing === item.id || coins < item.price}
-                              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg font-semibold text-sm text-white transition disabled:opacity-50"
+                              className="px-4 py-2 bg-gradient-to-r from-accentRust to-accentAmber hover:from-accentAmber hover:to-accentRust rounded-lg font-bold text-xs uppercase tracking-wider text-background shadow-[0_0_12px_rgba(232,160,32,0.3)] transition disabled:opacity-50 disabled:grayscale"
                             >
                               {purchasing === item.id ? '...' : 'Buy'}
                             </motion.button>
@@ -292,10 +292,10 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
 
                       {/* Inventory count for consumables */}
                       {item.category === 'consumable' && (
-                        <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
-                          <span className="text-xs text-slate-400">In inventory:</span>
+                        <div className="mt-3 pt-3 border-t border-borderSubtle flex items-center justify-between">
+                          <span className="text-[10px] text-textMuted uppercase font-bold tracking-wider">In inventory:</span>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-white">
+                            <span className="font-bold text-textPrimary text-sm">
                               {item.id.includes('healthPotion') || item.id === 'superHealthPotion'
                                 ? inventory?.healthPotions || 0
                                 : item.id === 'freezeStreak'
@@ -306,7 +306,7 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                               (item.id === 'freezeStreak' && (inventory?.freezeStreaks || 0) > 0)) && (
                               <button
                                 onClick={() => handleUseItem(item.id)}
-                                className="px-2 py-1 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded text-xs text-green-300 font-semibold transition"
+                                className="px-3 py-1 bg-success/10 hover:bg-success/20 border border-success/30 rounded-md text-[10px] text-success font-bold uppercase tracking-wider transition shadow-[0_0_8px_rgba(34,197,94,0.1)]"
                               >
                                 Use
                               </button>
@@ -322,22 +322,22 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
           </div>
 
           {/* Footer - Inventory Summary */}
-          <div className="p-4 border-t border-white/10 bg-white/5">
-            <div className="flex items-center justify-center gap-8 text-sm">
+          <div className="p-4 border-t border-borderSubtle bg-surfaceElevated">
+            <div className="flex items-center justify-center gap-8 text-[11px] font-bold uppercase tracking-wider">
               <div className="flex items-center gap-2">
-                <span>🧪</span>
-                <span className="text-slate-400">Health Potions:</span>
-                <span className="font-bold text-white">{inventory?.healthPotions || 0}</span>
+                <span className="drop-shadow-md">🧪</span>
+                <span className="text-textMuted">Health Potions:</span>
+                <span className="text-accentAmber">{inventory?.healthPotions || 0}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span>❄️</span>
-                <span className="text-slate-400">Freeze Streaks:</span>
-                <span className="font-bold text-white">{inventory?.freezeStreaks || 0}</span>
+                <span className="drop-shadow-md">❄️</span>
+                <span className="text-textMuted">Freeze Streaks:</span>
+                <span className="text-accentAmber">{inventory?.freezeStreaks || 0}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span>🖼️</span>
-                <span className="text-slate-400">Backgrounds:</span>
-                <span className="font-bold text-white">{inventory?.backgrounds?.length || 1}</span>
+                <span className="drop-shadow-md">🖼️</span>
+                <span className="text-textMuted">Backgrounds:</span>
+                <span className="text-accentAmber">{inventory?.backgrounds?.length || 1}</span>
               </div>
             </div>
           </div>

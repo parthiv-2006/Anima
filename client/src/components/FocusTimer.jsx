@@ -12,8 +12,8 @@ const PRESET_TIMES = [
 ];
 
 const STAT_OPTIONS = [
-  { value: 'INT', label: 'Intellect', emoji: '📚', color: 'text-blue-400', gradient: 'from-blue-500 to-cyan-500' },
-  { value: 'SPI', label: 'Spirit', emoji: '🌿', color: 'text-green-400', gradient: 'from-green-500 to-emerald-500' }
+  { value: 'INT', label: 'Intellect', emoji: '📘', color: 'text-statINT', bg: 'bg-statINT', gradient: 'from-statINT/80 to-statINT' },
+  { value: 'SPI', label: 'Spirit', emoji: '🌿', color: 'text-statSPI', bg: 'bg-statSPI', gradient: 'from-statSPI/80 to-statSPI' }
 ];
 
 const TIMER_STORAGE_KEY = 'focusTimerSession';
@@ -208,13 +208,13 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
   };
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur">
+    <div className="bg-surfaceElevated border border-borderSubtle rounded-3xl p-6 backdrop-blur shadow-2xl">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">⏱️ Focus Timer</h2>
+        <h2 className="text-xl font-bold font-cinzel text-textPrimary">⏱️ Focus Timer</h2>
         {!isActive && (
           <button
             onClick={() => setShowSetup(!showSetup)}
-            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition"
+            className="px-3 py-1.5 bg-surface hover:bg-surfaceElevated border border-borderSubtle rounded-lg text-sm text-textMuted font-bold uppercase tracking-wider transition"
           >
             {showSetup ? 'Close' : 'Setup'}
           </button>
@@ -232,7 +232,7 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
             <div className="space-y-4 pt-2">
               {/* Preset Times */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-xs font-bold uppercase tracking-widest text-textMuted mb-2">
                   Duration
                 </label>
                 <div className="grid grid-cols-5 gap-2">
@@ -242,12 +242,12 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
                       onClick={() => selectPreset(preset.minutes)}
                       className={`p-2 rounded-lg border transition text-center ${
                         duration === preset.minutes
-                          ? 'bg-amber-500/20 border-amber-500/50'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10'
+                          ? 'bg-accentAmber/10 border-accentAmber shadow-[0_0_8px_rgba(232,160,32,0.3)] text-textPrimary'
+                          : 'bg-surface border-borderSubtle hover:bg-surfaceElevated text-textMuted'
                       }`}
                     >
-                      <div className="text-lg mb-1">{preset.emoji}</div>
-                      <div className="text-xs font-semibold">{preset.label}</div>
+                      <div className="text-lg mb-1 drop-shadow-md">{preset.emoji}</div>
+                      <div className="text-xs font-bold">{preset.label}</div>
                     </button>
                   ))}
                 </div>
@@ -255,7 +255,7 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
 
               {/* Stat Selection */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-xs font-bold uppercase tracking-widest text-textMuted mb-2">
                   Focus Type
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -265,15 +265,15 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
                       onClick={() => setSelectedStat(stat.value)}
                       className={`p-3 rounded-lg border transition ${
                         selectedStat === stat.value
-                          ? 'bg-white/10 border-white/30'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10'
+                          ? 'bg-surfaceElevated border-accentAmber shadow-[0_0_8px_rgba(232,160,32,0.2)]'
+                          : 'bg-surface border-borderSubtle hover:bg-surfaceElevated'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl">{stat.emoji}</span>
-                        <span className={`font-semibold ${stat.color}`}>{stat.label}</span>
+                        <span className="text-2xl drop-shadow-md">{stat.emoji}</span>
+                        <span className={`font-bold ${stat.color} font-cinzel tracking-wide`}>{stat.label}</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-[10px] text-textMuted mt-1 uppercase font-bold text-left">
                         {stat.value === 'INT' ? 'Deep work, study, coding' : 'Meditation, mindfulness, reflection'}
                       </p>
                     </button>
@@ -317,8 +317,8 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
             />
             <defs>
               <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor={selectedStat === 'INT' ? '#3b82f6' : '#10b981'} />
-                <stop offset="100%" stopColor={selectedStat === 'INT' ? '#06b6d4' : '#34d399'} />
+                <stop offset="0%" stopColor={selectedStat === 'INT' ? '#3b82f6' : '#22c55e'} />
+                <stop offset="100%" stopColor={selectedStat === 'INT' ? '#60a5fa' : '#4ade80'} />
               </linearGradient>
             </defs>
           </svg>
@@ -329,39 +329,38 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
               key={timeLeft}
               initial={{ scale: 1.1, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="text-5xl font-bold tabular-nums"
+              className="text-5xl font-bold tabular-nums text-textPrimary font-mono drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]"
             >
               {formatTime(timeLeft)}
             </motion.div>
-            <p className="text-sm text-slate-400 mt-2">
+            <p className="text-xs text-textMuted mt-2 font-bold uppercase tracking-wider">
               {isActive && !isPaused ? '🎯 Stay focused!' : isActive && isPaused ? 'Paused' : wasResumed ? '⏳ Session resumed!' : 'Ready to focus?'}
             </p>
             {isActive && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`mt-3 px-3 py-1 rounded-full text-xs font-semibold ${
+                className={`mt-3 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                   selectedStat === 'INT' 
-                    ? 'bg-blue-500/20 text-blue-300' 
-                    : 'bg-green-500/20 text-green-300'
+                    ? 'bg-statINT/10 text-statINT border-statINT/30 shadow-[0_0_8px_rgba(59,130,246,0.2)]' 
+                    : 'bg-statSPI/10 text-statSPI border-statSPI/30 shadow-[0_0_8px_rgba(34,197,94,0.2)]'
                 }`}
               >
-                {selectedStat === 'INT' ? '📚 Intellect' : '🌿 Spirit'} Training
+                {selectedStat === 'INT' ? '📘 Intellect' : '🌿 Spirit'} Training
               </motion.div>
             )}
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-3 justify-center mt-8">
           {!isActive ? (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={startTimer}
-              className={`flex-1 max-w-xs py-3 rounded-lg font-semibold bg-gradient-to-r ${
+              className={`flex-1 max-w-xs py-3 rounded-lg font-bold uppercase tracking-wider text-sm bg-gradient-to-r ${
                 STAT_OPTIONS.find(s => s.value === selectedStat)?.gradient
-              } text-white transition`}
+              } text-background shadow-[0_0_15px_rgba(255,255,255,0.1)] transition`}
             >
               Start Focus Session
             </motion.button>
@@ -371,7 +370,7 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={pauseTimer}
-                className="flex-1 py-3 rounded-lg font-semibold bg-white/10 hover:bg-white/20 border border-white/20 transition"
+                className="flex-1 py-3 rounded-lg font-bold uppercase tracking-wider text-xs bg-surface border border-borderSubtle hover:bg-surfaceElevated transition text-textPrimary"
               >
                 {isPaused ? '▶️ Resume' : '⏸️ Pause'}
               </motion.button>
@@ -379,7 +378,7 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={stopTimer}
-                className="flex-1 py-3 rounded-lg font-semibold bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-300 transition"
+                className="flex-1 py-3 rounded-lg font-bold uppercase tracking-wider text-xs bg-accentRust/10 border border-accentRust/30 hover:bg-accentRust/20 text-accentRust transition shadow-[0_0_8px_rgba(196,79,42,0.2)]"
               >
                 ⏹️ Stop
               </motion.button>
@@ -392,9 +391,9 @@ export default function FocusTimer({ onTimerStart, onTimerEnd, onTimerStateChang
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mt-4 text-center text-sm text-slate-400"
+            className="mt-6 text-center text-xs text-textMuted uppercase font-bold tracking-wider"
           >
-            Complete this session for <span className="text-amber-400 font-semibold">+{Math.floor(duration * 2)} XP</span>
+            Complete session for <span className="text-accentAmber">+{Math.floor(duration * 2)} XP</span>
           </motion.div>
         )}
       </div>

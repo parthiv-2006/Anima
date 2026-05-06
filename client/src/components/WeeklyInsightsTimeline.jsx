@@ -169,14 +169,14 @@ export default function WeeklyInsightsTimeline({ refreshKey = 0, userCreatedAt }
   const maxWeeklyXp = weeklyData.reduce((max, wk) => Math.max(max, wk.totalXp), 0) || 1;
 
   const renderSummaryCard = (title, value, icon, accent) => (
-    <div className="flex-1 min-w-[180px] bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur relative overflow-hidden">
-      <div className={`absolute inset-0 ${accent} opacity-20 blur-3xl`} />
+    <div className="flex-1 min-w-[180px] bg-surfaceElevated border border-borderSubtle rounded-[14px] p-4 backdrop-blur relative overflow-hidden shadow-lg">
+      <div className={`absolute inset-0 ${accent} opacity-10 blur-2xl`} />
       <div className="relative flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{title}</p>
-          <p className="text-2xl font-bold text-white mt-1">{value}</p>
+          <p className="text-[10px] uppercase tracking-widest font-bold text-textMuted">{title}</p>
+          <p className="text-2xl font-bold text-textPrimary mt-1 font-cinzel">{value}</p>
         </div>
-        <div className="p-2 rounded-lg bg-white/5 text-amber-300">{icon}</div>
+        <div className="p-2 rounded-lg bg-surface text-accentAmber border border-borderSubtle">{icon}</div>
       </div>
     </div>
   );
@@ -201,9 +201,9 @@ export default function WeeklyInsightsTimeline({ refreshKey = 0, userCreatedAt }
 
   if (weeklyData.length === 0) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center text-slate-300">
-        <p className="text-lg font-semibold text-white">No data yet</p>
-        <p className="text-sm text-slate-400 mt-2">Complete quests this week to unlock your insights timeline.</p>
+      <div className="bg-surfaceElevated border border-borderSubtle rounded-2xl p-6 text-center text-textMuted shadow-lg">
+        <p className="text-lg font-bold text-textPrimary font-cinzel">No data yet</p>
+        <p className="text-sm mt-2">Complete quests this week to unlock your insights timeline.</p>
       </div>
     );
   }
@@ -213,14 +213,14 @@ export default function WeeklyInsightsTimeline({ refreshKey = 0, userCreatedAt }
   return (
     <div className="space-y-5">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-blue-600/10 p-6">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_35%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.15),transparent_30%)]" />
+      <div className="relative overflow-hidden rounded-3xl border border-borderSubtle bg-surfaceElevated p-6 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(232,160,32,0.05),transparent_35%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.05),transparent_30%)] pointer-events-none" />
         <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-amber-200">Weekly Insights</p>
-            <h2 className="text-2xl font-bold text-white mt-1">Your past weeks at a glance</h2>
-            <p className="text-sm text-amber-100/80 mt-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-accentAmber">Weekly Insights</p>
+            <h2 className="text-2xl font-bold text-textPrimary mt-1 font-cinzel">Your past weeks at a glance</h2>
+            <p className="text-sm text-textMuted mt-2 max-w-md">
               Highlights from your quests, XP gains, and stat focus for the last few months.
             </p>
           </div>
@@ -229,25 +229,25 @@ export default function WeeklyInsightsTimeline({ refreshKey = 0, userCreatedAt }
               'This Week XP',
               currentWeek ? `${currentWeek.totalXp} XP` : '0 XP',
               <Flame className="w-5 h-5" />,
-              'bg-amber-500'
+              'bg-accentAmber'
             )}
             {renderSummaryCard(
               'Habits Completed',
               currentWeek ? `${currentWeek.habitsCompleted}` : '0',
               <Activity className="w-5 h-5" />,
-              'bg-emerald-400'
+              'bg-statSPI'
             )}
             {renderSummaryCard(
               'Active Days (7d)',
               `${totals.activeDays7}/7`,
               <Clock className="w-5 h-5" />,
-              'bg-blue-400'
+              'bg-statINT'
             )}
             {renderSummaryCard(
               'Dominant Stat',
               dominantStat,
               <Award className="w-5 h-5" />,
-              'bg-purple-400'
+              'bg-accentRust'
             )}
           </div>
         </div>
@@ -267,51 +267,51 @@ export default function WeeklyInsightsTimeline({ refreshKey = 0, userCreatedAt }
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.03 }}
-              className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur relative overflow-hidden"
+              className="bg-surfaceElevated border border-borderSubtle rounded-[14px] p-5 backdrop-blur relative overflow-hidden shadow-lg"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 opacity-40" />
-              <div className="relative flex flex-col gap-3">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-20 pointer-events-none" />
+              <div className="relative flex flex-col gap-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-white/5 border border-white/10 text-amber-300">
+                    <div className="p-2 rounded-xl bg-surface border border-borderSubtle text-accentAmber shadow-[0_0_8px_rgba(232,160,32,0.1)]">
                       <CalendarRange className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Week of {formatWeekLabel(week.weekStart)}</p>
-                      <p className="text-sm text-slate-300">{formatDateRange(week.weekStart, week.weekEnd)}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-textMuted">Week of {formatWeekLabel(week.weekStart)}</p>
+                      <p className="text-sm font-bold text-textPrimary">{formatDateRange(week.weekStart, week.weekEnd)}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-400">XP</p>
-                    <p className="text-lg font-semibold text-white">{week.totalXp} XP</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-textMuted">XP</p>
+                    <p className="text-lg font-bold text-accentAmber font-cinzel">{week.totalXp}</p>
                   </div>
                 </div>
 
                 {/* XP bar */}
-                <div className="bg-slate-800/60 border border-white/5 rounded-xl h-3 overflow-hidden">
+                <div className="bg-surface border border-borderSubtle rounded-full h-2 overflow-hidden shadow-inner">
                   <div
-                    className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500"
+                    className="h-full bg-accentAmber shadow-[0_0_8px_rgba(232,160,32,0.6)]"
                     style={{ width: `${xpPercent}%` }}
                   />
                 </div>
 
                 {/* Breakdown */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-slate-300">
-                    <span className="flex items-center gap-2"><BarChart3 className="w-4 h-4 text-amber-300" /> Stat focus</span>
-                    <span className="text-slate-400">{week.habitsCompleted} habits • {week.activeDays} active days</span>
+                <div className="space-y-2 mt-1">
+                  <div className="flex items-center justify-between text-xs text-textMuted font-bold">
+                    <span className="flex items-center gap-2 uppercase tracking-wider"><BarChart3 className="w-4 h-4 text-textPrimary" /> Stat focus</span>
+                    <span>{week.habitsCompleted} habits • {week.activeDays} active days</span>
                   </div>
-                  <div className="bg-slate-800/60 border border-white/5 rounded-lg h-2 overflow-hidden flex">
-                    <div className="bg-red-400" style={{ width: `${strPct}%` }} />
-                    <div className="bg-blue-400" style={{ width: `${intPct}%` }} />
-                    <div className="bg-emerald-400" style={{ width: `${spiPct}%` }} />
+                  <div className="bg-surface border border-borderSubtle rounded-full h-1.5 overflow-hidden flex">
+                    <div className="bg-statSTR shadow-[0_0_4px_rgba(232,160,32,0.5)]" style={{ width: `${strPct}%` }} />
+                    <div className="bg-statINT shadow-[0_0_4px_rgba(59,130,246,0.5)]" style={{ width: `${intPct}%` }} />
+                    <div className="bg-statSPI shadow-[0_0_4px_rgba(34,197,94,0.5)]" style={{ width: `${spiPct}%` }} />
                   </div>
-                  <div className="flex gap-3 text-[11px] text-slate-300 flex-wrap">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" /> STR {week.strXp} XP</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400" /> INT {week.intXp} XP</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" /> SPI {week.spiXp} XP</span>
+                  <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest text-textMuted flex-wrap pt-1">
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-statSTR" /> STR <span className="text-textPrimary">{week.strXp}</span></span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-statINT" /> INT <span className="text-textPrimary">{week.intXp}</span></span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-statSPI" /> SPI <span className="text-textPrimary">{week.spiXp}</span></span>
                     {week.bestDay && (
-                      <span className="flex items-center gap-1 text-amber-300">
+                      <span className="flex items-center gap-1 text-accentAmber ml-auto border border-accentAmber/20 bg-accentAmber/10 px-2 py-0.5 rounded-md">
                         <TrendingUp className="w-3 h-3" /> Best: {week.bestDay.totalXp} XP on {formatWeekLabel(parseLocalDate(week.bestDay.date))}
                       </span>
                     )}

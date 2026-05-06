@@ -113,19 +113,16 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
       </div>
 
       <motion.div
-        className="relative bg-gradient-to-b from-slate-800/50 to-slate-900/80 border border-white/10 rounded-3xl overflow-hidden min-h-[420px] shadow-xl"
+        className="relative bg-gradient-to-b from-slate-800/50 to-[#0a0a0a] border border-borderSubtle rounded-[14px] overflow-hidden min-h-[420px] shadow-2xl"
         whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.3 }}
       >
         {/* Background gradient overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${getBackgroundGradient()}`} />
-        
-        {/* Ambient particles/glow effect */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(251,191,36,0.1),transparent_50%)]" />
+        <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(232,160,32,0.1)_0%,transparent_60%)] pointer-events-none`} />
         
         <div className="relative h-full min-h-[380px] flex items-center justify-center pt-28 pb-56 px-10">
           {/* Significantly scaled up pet display */}
-          <div className="transform scale-150 md:scale-[1.75]">
+          <div className="transform scale-150 md:scale-[1.75]" style={{ animation: 'particle-float 4s infinite alternate ease-in-out' }}>
             <AnimatedPet species={petType} totalXp={totalXp} stage={evolutionStage} forcedState={petState} />
           </div>
           
@@ -134,14 +131,14 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
             initial={{ opacity: 0, y: -10, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 1, duration: 0.4, ease: 'backOut' }}
-            className="absolute top-2 left-1/2 -translate-x-1/2 max-w-[340px] z-10"
+            className="absolute top-8 left-1/2 -translate-x-1/2 max-w-[340px] z-10"
           >
             {/* Speech bubble tail */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-slate-800" />
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-surface" />
             
             {/* Speech bubble box - RPG style */}
-            <div className="relative bg-slate-800/95 backdrop-blur border-2 border-amber-500/50 rounded-xl p-4 shadow-lg shadow-amber-500/10">
-              <p className="text-amber-100 text-sm md:text-base font-medium text-center leading-tight" style={{ fontFamily: 'monospace' }}>
+            <div className="relative bg-surface backdrop-blur border border-accentAmber rounded-xl p-4 shadow-[0_0_8px_rgba(232,160,32,0.2)]">
+              <p className="text-textPrimary text-sm font-medium text-center leading-tight font-mono">
                 "{dialogue}"
               </p>
             </div>
@@ -150,51 +147,31 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
 
         {/* Game-style Status Bars - Inside the habitat */}
         <div className="absolute bottom-6 left-6 right-6 space-y-4">
-          {/* HP Bar - Chunky RPG style */}
-          <div className="bg-black/40 backdrop-blur-sm rounded-xl p-4 border border-white/5">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">❤️</span>
-              <div className="flex-1">
-                <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
-                  <span className="font-bold uppercase tracking-wider">Health</span>
-                  <span className="font-bold">{hp}/100</span>
-                </div>
-                <div className="h-4 rounded-lg bg-slate-700/50 overflow-hidden border border-white/5">
-                  <motion.div
-                    className={`h-full bg-gradient-to-r ${hpColor} relative`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${hp}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                  >
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent h-1/2" />
-                  </motion.div>
-                </div>
-              </div>
+          {/* HP Bar */}
+          <div>
+            <div className="flex items-center justify-between text-[10px] text-textMuted mb-1 font-bold tracking-widest uppercase">
+              <span>Health</span>
+              <span>{hp}/100</span>
+            </div>
+            <div className="h-2 rounded-full bg-surfaceElevated overflow-hidden border border-borderSubtle">
+              <div
+                className="h-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                style={{ width: `${hp}%`, animation: 'bar-fill 1.2s ease forwards' }}
+              />
             </div>
           </div>
 
-          {/* XP Bar - Chunky RPG style */}
-          <div className="bg-black/40 backdrop-blur-sm rounded-xl p-4 border border-white/5">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">⭐</span>
-              <div className="flex-1">
-                <div className="flex items-center justify-between text-xs text-slate-300 mb-1">
-                  <span className="font-bold uppercase tracking-wider">Experience</span>
-                  <span className="font-bold">{totalXp}/{nextThreshold} XP</span>
-                </div>
-                <div className="h-4 rounded-lg bg-slate-700/50 overflow-hidden border border-white/5">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500 relative"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                  >
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent h-1/2" />
-                  </motion.div>
-                </div>
-              </div>
+          {/* XP Bar */}
+          <div>
+            <div className="flex items-center justify-between text-[10px] text-textMuted mb-1 font-bold tracking-widest uppercase">
+              <span>Experience</span>
+              <span>{totalXp}/{nextThreshold} XP</span>
+            </div>
+            <div className="h-2 rounded-full bg-surfaceElevated overflow-hidden border border-borderSubtle">
+              <div
+                className="h-full bg-accentAmber shadow-[0_0_8px_rgba(232,160,32,0.6)]"
+                style={{ width: `${progress}%`, animation: 'bar-fill 1.2s ease forwards' }}
+              />
             </div>
           </div>
         </div>
