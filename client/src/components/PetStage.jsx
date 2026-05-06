@@ -96,53 +96,42 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
   const dialogue = getPetDialogue(petStats, hp);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-amber-500/80 font-semibold">Your Companion</p>
-          <h2 className="text-2xl font-bold text-white">Stage {evolutionStage}</h2>
-        </div>
-        <div className="text-right">
-          <span className="text-xs text-slate-400 bg-white/5 px-2 py-1 rounded-lg">
-            {Math.max(nextThreshold - totalXp, 0)} XP to evolve
-          </span>
-          {background !== 'default' && BACKGROUND_STYLES[background] && (
-            <p className="text-xs text-amber-400/70 mt-1">📍 {BACKGROUND_STYLES[background].name}</p>
-          )}
-        </div>
-      </div>
+    <div className="flex flex-col flex-1">
 
       <motion.div
-        className="relative bg-gradient-to-b from-slate-800/50 to-[#0a0a0a] border border-borderSubtle rounded-[14px] overflow-hidden min-h-[420px] shadow-2xl"
+        className="relative bg-gradient-to-b from-slate-800/50 to-[#0a0a0a] border border-borderSubtle rounded-[14px] overflow-hidden flex-1 shadow-2xl"
         whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.3 }}
       >
         {/* Background gradient overlay */}
         <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(232,160,32,0.1)_0%,transparent_60%)] pointer-events-none`} />
+        {background !== 'default' && BACKGROUND_STYLES[background] && (
+          <div className="absolute top-3 right-3 z-10 text-[10px] text-accentAmber/70 bg-surface/60 px-2 py-1 rounded-lg border border-borderSubtle">
+            📍 {BACKGROUND_STYLES[background].name}
+          </div>
+        )}
         
-        <div className="relative h-full min-h-[380px] flex items-center justify-center pt-28 pb-56 px-10">
-          {/* Significantly scaled up pet display */}
-          <div className="transform scale-150 md:scale-[1.75]" style={{ animation: 'particle-float 4s infinite alternate ease-in-out' }}>
-            <AnimatedPet species={petType} totalXp={totalXp} stage={evolutionStage} forcedState={petState} />
+        <div className="relative flex flex-col h-full">
+          {/* Speech bubble sits at the top */}
+          <div className="relative flex items-start justify-center pt-6 px-6">
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 1, duration: 0.4, ease: 'backOut' }}
+              className="max-w-[300px] relative"
+            >
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-surface" />
+              <div className="relative bg-surface backdrop-blur border border-accentAmber rounded-xl p-3 shadow-[0_0_8px_rgba(232,160,32,0.2)]">
+                <p className="text-textPrimary text-xs font-medium text-center leading-snug font-mono">"{dialogue}"</p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Pet sprite — fills the space between bubble and status bars */}
+          <div className="flex-1 flex items-center justify-center pb-16">
+            <AnimatedPet species={petType} totalXp={totalXp} stage={evolutionStage} forcedState={petState} large />
           </div>
           
-          {/* Speech Bubble with Dialogue */}
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 1, duration: 0.4, ease: 'backOut' }}
-            className="absolute top-8 left-1/2 -translate-x-1/2 max-w-[340px] z-10"
-          >
-            {/* Speech bubble tail */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-surface" />
-            
-            {/* Speech bubble box - RPG style */}
-            <div className="relative bg-surface backdrop-blur border border-accentAmber rounded-xl p-4 shadow-[0_0_8px_rgba(232,160,32,0.2)]">
-              <p className="text-textPrimary text-sm font-medium text-center leading-tight font-mono">
-                "{dialogue}"
-              </p>
-            </div>
-          </motion.div>
         </div>
 
         {/* Game-style Status Bars - Inside the habitat */}

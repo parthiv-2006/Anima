@@ -45,7 +45,7 @@ const AMBIENT_THOUGHTS = [
   "Progress over perfection! 🎨"
 ];
 
-export default function AnimatedPet({ species, totalXp, stage, forcedState, ambientMode = false }) {
+export default function AnimatedPet({ species, totalXp, stage, forcedState, ambientMode = false, large = false }) {
   const [animationState, setAnimationState] = useState(ANIMATION_STATES.IDLE);
   const [isSleeping, setIsSleeping] = useState(false);
   const [showZzz, setShowZzz] = useState(false);
@@ -210,8 +210,8 @@ export default function AnimatedPet({ species, totalXp, stage, forcedState, ambi
 
   return (
     <div className={`relative w-full flex items-center justify-center ${
-      ambientMode ? 'h-auto' : 'h-80 rounded-2xl'
-    } ${ambientMode ? '' : getBackgroundGradient()}`}>
+      ambientMode ? 'h-auto' : large ? '' : 'h-80 rounded-2xl'
+    } ${ambientMode || large ? '' : getBackgroundGradient()}`}>
       {/* Ambient Mode Thought Bubble */}
       <AnimatePresence>
         {showThought && ambientMode && (
@@ -297,10 +297,10 @@ export default function AnimatedPet({ species, totalXp, stage, forcedState, ambi
           <motion.img
             src={getPetImageByStage()}
             alt={`${species} pet`}
-            className="w-64 h-64 object-contain relative z-10 drop-shadow-2xl"
+            className={`${large ? 'w-52 h-52' : 'w-32 h-32'} object-contain relative z-10 drop-shadow-2xl`}
             style={{
-              filter: isSleeping ? 'brightness(0.7) grayscale(0.3)' : 'brightness(1)',
-              imageRendering: 'crisp-edges'
+              filter: isSleeping ? 'brightness(0.7) grayscale(0.3)' : 'brightness(1.1)',
+              imageRendering: 'pixelated'
             }}
           />
 
