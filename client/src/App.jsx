@@ -58,7 +58,7 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => (
   >
     <Icon className="w-5 h-5" />
     {/* Tooltip - positioned outside sidebar with high z-index */}
-    <span className="absolute left-14 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-800 text-xs text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[100] shadow-xl border border-white/10">
+    <span className="absolute left-14 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-surfaceElevated text-[11px] font-bold tracking-wider uppercase text-textPrimary rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[100] shadow-xl border border-borderSubtle">
       {label}
     </span>
   </motion.button>
@@ -80,13 +80,13 @@ const InfoModal = ({ isOpen, onClose }) => (
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-surface backdrop-blur-xl border border-borderSubtle rounded-2xl p-6 max-w-md shadow-2xl"
+          className="bg-surfaceElevated backdrop-blur-xl border border-borderSubtle rounded-[16px] p-6 max-w-md shadow-2xl"
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-textPrimary font-cinzel">📖 Evolution Guide</h3>
             <button onClick={onClose} className="text-textMuted hover:text-textPrimary transition">✕</button>
           </div>
-          <ul className="text-sm text-textPrimary space-y-3 font-sans">
+          <ul className="text-[13px] text-textPrimary space-y-3 font-sans">
             <li className="flex gap-2"><span>🌟</span> Stage 2 unlocks after 100 XP. Your dominant stat determines variant.</li>
             <li className="flex gap-2"><span>⚡</span> Stage 3 unlocks after 500 XP. Pure vs hybrid build check.</li>
             <li className="flex gap-2"><span>💔</span> Decay: If you're away 24+ hours, HP drops 10% and habits reset.</li>
@@ -375,6 +375,8 @@ function App() {
             <NavItem icon={ShoppingBag} label="Shop" onClick={() => setShowShop(true)} />
             <NavItem icon={Timer} label="Focus Timer" active={activeView === 'focus'} onClick={() => setActiveView('focus')} />
             <NavItem icon={LineChart} label="Insights" active={activeView === 'insights'} onClick={() => setActiveView('insights')} />
+            <NavItem icon={Monitor} label="Ambient Mode" onClick={() => setShowAmbientMode(true)} />
+            <NavItem icon={BookOpen} label="Guide" onClick={() => setShowInfoModal(true)} />
           </div>
 
           {/* Bottom Actions */}

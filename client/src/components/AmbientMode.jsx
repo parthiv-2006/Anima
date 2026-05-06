@@ -102,10 +102,10 @@ const AmbientMode = ({ onExit, currentBackground = 'default', timerState = null 
           onClick={onExit}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="absolute top-6 right-6 p-3 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-full text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all duration-300 shadow-xl group"
+          className="absolute top-6 right-6 p-3 bg-surfaceElevated backdrop-blur-xl border border-borderSubtle rounded-[12px] text-textMuted hover:text-textPrimary hover:bg-surface/80 transition-all duration-300 shadow-xl group"
         >
           <X className="w-5 h-5" />
-          <span className="absolute right-14 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-800 text-xs text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+          <span className="absolute right-14 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-surfaceElevated border border-borderSubtle text-[11px] font-bold tracking-wider uppercase text-textPrimary rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
             Exit Ambient Mode (ESC)
           </span>
         </motion.button>
@@ -115,9 +115,9 @@ const AmbientMode = ({ onExit, currentBackground = 'default', timerState = null 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: [0, 1, 1, 0] }}
           transition={{ duration: 3, times: [0, 0.1, 0.8, 1] }}
-          className="absolute top-6 left-6 px-4 py-2 bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-full"
+          className="absolute top-6 left-6 px-4 py-2 bg-surfaceElevated backdrop-blur-sm border border-borderSubtle rounded-[12px]"
         >
-          <span className="text-sm text-slate-300 font-medium">
+          <span className="text-[11px] text-textMuted font-bold tracking-wider uppercase">
             🌙 {bgStyle.name}
           </span>
         </motion.div>
