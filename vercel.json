@@ -1,7 +1,7 @@
 {
     "buildCommand": "npm run build",
     "outputDirectory": "client/dist",
-    "installCommand": "npm install && npm install @rollup/rollup-linux-x64-gnu --save-optional",
+    "installCommand": "npm install --include=dev && npm install @rollup/rollup-linux-x64-gnu --save-optional",
     "framework": "vite",
     "rewrites": [
         { "source": "/api/(.*)", "destination": "/api" }
