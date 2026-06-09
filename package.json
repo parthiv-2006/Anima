@@ -12,5 +12,10 @@
     "dev:server": "npm run dev -w server",
     "build": "npm run build -w client",
     "lint": "npm run lint -w client"
+  },
+  "devDependencies": {
+    "gif-encoder-2": "^1.0.5",
+    "playwright": "^1.60.0",
+    "pngjs": "^7.0.0"
   }
 }
