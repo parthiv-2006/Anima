@@ -20,11 +20,7 @@ Most habit trackers offer streaks and checkboxes. Anima adds stakes: every compl
 
 [![Live Demo](https://img.shields.io/badge/Try%20It%20Live-anima--client.vercel.app-amber?style=for-the-badge)](https://anima-client.vercel.app)
 
-**Demo video** — walk through the full user flow in under 90 seconds:
-
-https://github.com/parthiv-2006/Anima/releases/download/v1.0.0/demo.mp4
-
-> Replace this URL with the actual release asset link after uploading the video.
+![Anima demo — dashboard, quest completion, evolution event, focus timer, insights, and ambient mode](.github/assets/demo.gif)
 
 ---
 
@@ -35,10 +31,6 @@ Capture all screenshots by running `node scripts/capture-screenshots.mjs` (see t
 ### Login and Registration
 ![Login page with email/password form and species pre-selection for new accounts](.github/assets/screenshots/auth-login.png)
 The authentication form handles login and registration in a single view. New accounts include species selection (Ember, Aqua, Terra) passed in the `POST /api/auth/register` payload so the pet species is fixed at account creation.
-
-### Onboarding Wizard
-![Multi-step wizard for choosing pet species and creating first quests](.github/assets/screenshots/onboarding.png)
-Accounts with zero habits trigger a guided wizard on first login. It walks through species selection and creates the user's first habit before redirecting to the dashboard.
 
 ### Main Dashboard (Desktop, 1440×900)
 ![Three-panel dashboard: icon sidebar, pet habitat with HP/XP bars, scrollable quest list](.github/assets/screenshots/dashboard-desktop.png)
