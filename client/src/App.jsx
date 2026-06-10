@@ -157,6 +157,7 @@ function App() {
   const [heatmapRefreshKey, setHeatmapRefreshKey] = useState(0);
   const [coins, setCoins] = useState(0);
   const [inventory, setInventory] = useState(null);
+  const [freezeProtectionUntil, setFreezeProtectionUntil] = useState(null);
   const [activeBackground, setActiveBackground] = useState('default');
   const [completionModalData, setCompletionModalData] = useState(null); // { habit } or null
 
@@ -278,6 +279,7 @@ function App() {
       setPet(petData);
       setCoins(inventoryData.coins);
       setInventory(inventoryData.inventory);
+      setFreezeProtectionUntil(inventoryData.freezeProtectionUntil || null);
       setActiveBackground(inventoryData.inventory?.activeBackground || 'default');
     } catch (err) {
       setError(err.message);
@@ -351,6 +353,25 @@ function App() {
         prev.map((h) => (h._id === habit._id ? { ...h, isCompletedToday: false } : h))
       );
       pushToast({ type: 'error', title: 'Completion Failed', message: err.message });
+    }
+  }
+
+  // Heal from the habitat without opening the shop. Prefers regular potions,
+  // falls back to a super potion when that's all that's left.
+  async function handleQuickHeal() {
+    const itemId = (inventory?.healthPotions || 0) > 0 ? 'healthPotion' : 'superHealthPotion';
+    try {
+      const result = await shopApi.useItem(itemId);
+      const newHp = result?.pet?.hp;
+      pushToast({
+        type: 'success',
+        title: 'Potion Used',
+        message: newHp != null ? `Your companion recovered — HP is now ${newHp}/100.` : 'Your companion feels better!'
+      });
+      triggerCelebrate();
+      loadData();
+    } catch (err) {
+      pushToast({ type: 'error', title: 'Cannot Use Potion', message: err.message });
     }
   }
 
@@ -550,6 +571,8 @@ function App() {
                       background={activeBackground}
                       hp={pet.hp}
                       petStats={pet.stats}
+                      potionCount={(inventory?.healthPotions || 0) + (inventory?.superHealthPotions || 0)}
+                      onQuickHeal={handleQuickHeal}
                     />
                   </div>
                 </div>
@@ -775,6 +798,7 @@ function App() {
         onClose={() => setShowShop(false)}
         coins={coins}
         inventory={inventory}
+        freezeProtectionUntil={freezeProtectionUntil}
         onPurchase={loadData}
         onUseItem={loadData}
         onSetBackground={(bg) => {

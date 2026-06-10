@@ -5,14 +5,58 @@ import PipBar from './PipBar.jsx';
 import { getSpeciesTheme } from '../theme/speciesTheme.js';
 import { useUiStore, deriveMood } from '../state/uiStore.js';
 
-const BACKGROUND_STYLES = {
-  default: { gradient: 'from-slate-800/50 to-slate-900/50', name: 'Default' },
-  dojo: { gradient: 'from-red-900/40 to-orange-900/40', name: 'Dojo Arena' },
-  library: { gradient: 'from-blue-900/40 to-indigo-900/40', name: 'Ancient Library' },
-  forest: { gradient: 'from-green-900/40 to-emerald-900/40', name: 'Mystic Forest' },
-  volcano: { gradient: 'from-orange-900/40 to-red-950/40', name: 'Volcanic Lair' },
-  ocean: { gradient: 'from-cyan-900/40 to-blue-950/40', name: 'Ocean Depths' },
-  mountain: { gradient: 'from-stone-800/40 to-slate-900/40', name: 'Mountain Peak' }
+// Full habitat themes for purchasable backgrounds. When equipped, these
+// override the species-tinted environment so the change is unmistakable:
+// new gradient, new mote color, new ambient glow.
+const BACKGROUND_THEMES = {
+  dojo: {
+    name: 'Dojo Arena',
+    emoji: '🥋',
+    from: 'rgba(127, 29, 29, 0.55)',
+    to: 'rgba(24, 9, 5, 0.95)',
+    particle: '#fca5a5',
+    glow: 'rgba(248, 113, 113, 0.14)'
+  },
+  library: {
+    name: 'Ancient Library',
+    emoji: '📚',
+    from: 'rgba(30, 58, 138, 0.5)',
+    to: 'rgba(10, 10, 28, 0.95)',
+    particle: '#a5b4fc',
+    glow: 'rgba(129, 140, 248, 0.14)'
+  },
+  forest: {
+    name: 'Mystic Forest',
+    emoji: '🌲',
+    from: 'rgba(20, 83, 45, 0.55)',
+    to: 'rgba(5, 18, 10, 0.95)',
+    particle: '#86efac',
+    glow: 'rgba(74, 222, 128, 0.14)'
+  },
+  volcano: {
+    name: 'Volcanic Lair',
+    emoji: '🌋',
+    from: 'rgba(154, 52, 18, 0.6)',
+    to: 'rgba(28, 8, 3, 0.96)',
+    particle: '#fdba74',
+    glow: 'rgba(251, 146, 60, 0.18)'
+  },
+  ocean: {
+    name: 'Ocean Depths',
+    emoji: '🌊',
+    from: 'rgba(22, 78, 99, 0.6)',
+    to: 'rgba(4, 12, 28, 0.96)',
+    particle: '#67e8f9',
+    glow: 'rgba(34, 211, 238, 0.16)'
+  },
+  mountain: {
+    name: 'Mountain Peak',
+    emoji: '🏔️',
+    from: 'rgba(68, 64, 60, 0.55)',
+    to: 'rgba(12, 12, 14, 0.95)',
+    particle: '#d6d3d1',
+    glow: 'rgba(214, 211, 209, 0.1)'
+  }
 };
 
 const TRICK_UNLOCK_KEY = 'anima-trick-unlocks';
@@ -72,8 +116,14 @@ function getPetDialogue(petStats, currentHP) {
   }
 }
 
-function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState, background = 'default', hp = 100, petStats }) {
+function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState, background = 'default', hp = 100, petStats, potionCount = 0, onQuickHeal }) {
   const theme = getSpeciesTheme(petType);
+  // Equipped background overrides the species environment
+  const bgTheme = BACKGROUND_THEMES[background] || null;
+  const habitatFrom = bgTheme?.from ?? theme.habitatFrom;
+  const habitatTo = bgTheme?.to ?? theme.habitatTo;
+  const moteColor = bgTheme?.particle ?? theme.particle;
+  const ambientGlow = bgTheme?.glow ?? theme.soft;
   const pushToast = useUiStore((s) => s.pushToast);
   const recentCompletions = useUiStore((s) => s.recentCompletions);
   const mood = deriveMood(hp, recentCompletions);
@@ -140,7 +190,7 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
     <div className="flex flex-col flex-1">
       <div
         className="relative border border-borderSubtle rounded-[14px] overflow-hidden flex-1 shadow-2xl"
-        style={{ background: `linear-gradient(to bottom, ${theme.habitatFrom}, ${theme.habitatTo})` }}
+        style={{ background: `linear-gradient(to bottom, ${habitatFrom}, ${habitatTo})` }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -148,11 +198,8 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
         <motion.div className="absolute inset-[-24px] pointer-events-none" style={{ x: bgX, y: bgY }}>
           <div
             className="absolute inset-0"
-            style={{ background: `radial-gradient(ellipse at 50% 30%, ${theme.soft} 0%, transparent 60%)` }}
+            style={{ background: `radial-gradient(ellipse at 50% 30%, ${ambientGlow} 0%, transparent 60%)` }}
           />
-          {background !== 'default' && BACKGROUND_STYLES[background] && (
-            <div className={`absolute inset-0 bg-gradient-to-b ${BACKGROUND_STYLES[background].gradient}`} />
-          )}
           {ambientParticles.map((p, i) => (
             <motion.div
               key={i}
@@ -162,7 +209,7 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
                 bottom: '12%',
                 width: p.size,
                 height: p.size,
-                background: theme.particle,
+                background: moteColor,
                 opacity: 0.5
               }}
               animate={{ y: [0, -120], opacity: [0, 0.55, 0] }}
@@ -174,7 +221,7 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
         {/* Ground plate the pet stands on */}
         <div
           className="absolute left-1/2 -translate-x-1/2 bottom-[88px] w-[78%] h-16 rounded-[50%] pointer-events-none"
-          style={{ background: `radial-gradient(ellipse at center, ${theme.soft} 0%, transparent 70%)` }}
+          style={{ background: `radial-gradient(ellipse at center, ${ambientGlow} 0%, transparent 70%)` }}
         />
 
         {/* Mood meter — visible at a glance */}
@@ -200,9 +247,9 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
           </div>
         </div>
 
-        {background !== 'default' && BACKGROUND_STYLES[background] && (
-          <div className="absolute top-3 right-3 z-10 text-[10px] text-textPrimary/70 bg-black/30 backdrop-blur px-2 py-1 rounded-lg border border-borderSubtle">
-            📍 {BACKGROUND_STYLES[background].name}
+        {bgTheme && (
+          <div className="absolute top-3 right-3 z-10 text-[10px] text-textPrimary/80 bg-black/30 backdrop-blur px-2 py-1 rounded-lg border" style={{ borderColor: bgTheme.particle + '55' }}>
+            {bgTheme.emoji} {bgTheme.name}
           </div>
         )}
 
@@ -246,7 +293,7 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
                 top: `${30 + (i % 2) * 38}%`,
                 width: 6,
                 height: 6,
-                background: theme.particle,
+                background: moteColor,
                 opacity: 0.35
               }}
               animate={{ y: [0, -14, 0] }}
@@ -254,6 +301,28 @@ function PetStage({ petType = 'EMBER', evolutionStage = 1, totalXp = 0, petState
             />
           ))}
         </motion.div>
+
+        {/* Quick-heal: use a potion straight from the habitat when HP is down */}
+        {hp < 100 && potionCount > 0 && onQuickHeal && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={onQuickHeal}
+            title="Use a health potion"
+            className="absolute bottom-[120px] right-5 z-10 flex items-center gap-1.5 px-3 py-2 rounded-lg border border-success/40 bg-black/40 backdrop-blur text-success text-xs font-bold shadow-[0_0_12px_rgba(34,197,94,0.25)]"
+          >
+            <motion.span
+              animate={{ rotate: [0, -12, 12, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2 }}
+              className="text-base leading-none"
+            >
+              🧪
+            </motion.span>
+            Heal ×{potionCount}
+          </motion.button>
+        )}
 
         {/* Segmented status gauges */}
         <div className="absolute bottom-5 left-6 right-6 space-y-3.5">
