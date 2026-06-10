@@ -61,3 +61,41 @@ button {
 }
 
 .screen-enter { animation: fade-in 0.3s ease forwards; }
+
+/* ---------- Card shape language ----------
+   Adjacent panels deliberately use different silhouettes:
+   .card-cut  = angled top-right corner (JRPG menu plate)
+   .card-asym = asymmetric border radius (soft ticket)
+   .card-notch = angled bottom-left corner */
+.card-cut {
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+  border-radius: 10px 0 10px 10px;
+}
+.card-notch {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  border-radius: 10px 10px 10px 0;
+}
+.card-asym {
+  border-radius: 22px 8px 22px 8px;
+}
+
+/* Solid bordered buttons with a 1px inner glow on hover (no gradient pills) */
+.btn-solid {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--sp-border, rgba(232, 160, 32, 0.35));
+  color: var(--sp-accent, #e8a020);
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+.btn-solid:hover {
+  background: var(--sp-soft, rgba(232, 160, 32, 0.12));
+  box-shadow: inset 0 0 0 1px var(--sp-accent, #e8a020), 0 0 14px var(--sp-glow, rgba(232, 160, 32, 0.35));
+}
+
+/* Segmented pip bars (ATB-gauge style) */
+@keyframes pip-pop {
+  0% { transform: scaleY(0.2); opacity: 0; }
+  60% { transform: scaleY(1.25); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+.pip-fill { animation: pip-pop 0.3s ease-out backwards; }
+
