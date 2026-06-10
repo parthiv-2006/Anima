@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { shop as shopApi } from '../services/api.js';
+import { useUiStore } from '../state/uiStore.js';
 import confetti from 'canvas-confetti';
 
 const TABS = [
@@ -18,13 +19,20 @@ const BACKGROUND_GRADIENTS = {
   mountain: 'from-stone-800/50 to-slate-900/50'
 };
 
-export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase, onUseItem, onSetBackground }) {
+// Maps a consumable shop item id to its inventory pool field
+const INVENTORY_POOLS = {
+  healthPotion: 'healthPotions',
+  superHealthPotion: 'superHealthPotions',
+  freezeStreak: 'freezeStreaks'
+};
+
+export default function ItemShop({ isOpen, onClose, coins, inventory, freezeProtectionUntil, onPurchase, onUseItem, onSetBackground }) {
   const [activeTab, setActiveTab] = useState('consumable');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(null);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const pushToast = useUiStore((s) => s.pushToast);
+  const triggerCelebrate = useUiStore((s) => s.triggerCelebrate);
 
   useEffect(() => {
     if (isOpen) {
@@ -38,7 +46,7 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
       const data = await shopApi.getItems();
       setItems(data.items);
     } catch (err) {
-      setError('Failed to load shop items');
+      pushToast({ type: 'error', title: 'Shop Unavailable', message: 'Failed to load shop items.' });
     } finally {
       setLoading(false);
     }
@@ -46,68 +54,71 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
 
   const handlePurchase = async (item) => {
     if (coins < item.price) {
-      setError('Not enough coins!');
-      setTimeout(() => setError(''), 2000);
+      pushToast({ type: 'warning', title: 'Not Enough Coins', message: `You need ${item.price - coins} more coins for ${item.name}.` });
       return;
     }
-
     if (item.owned) {
-      setError('Already owned!');
-      setTimeout(() => setError(''), 2000);
+      pushToast({ type: 'warning', title: 'Already Owned', message: `${item.name} is already in your collection.` });
       return;
     }
 
     try {
       setPurchasing(item.id);
       await shopApi.purchase(item.id);
-      
-      // Celebrate purchase
+
       confetti({
         particleCount: 50,
         spread: 60,
         origin: { y: 0.7 },
         colors: ['#fbbf24', '#f59e0b', '#d97706']
       });
+      pushToast({ type: 'success', title: 'Purchased!', message: `${item.emoji} ${item.name} added to your inventory.` });
 
-      setSuccessMessage(`Purchased ${item.name}!`);
-      setTimeout(() => setSuccessMessage(''), 2000);
-      
-      // Reload items and notify parent
       await loadShopItems();
       onPurchase?.();
     } catch (err) {
-      setError(err.message || 'Purchase failed');
-      setTimeout(() => setError(''), 2000);
+      pushToast({ type: 'error', title: 'Purchase Failed', message: err.message });
     } finally {
       setPurchasing(null);
     }
   };
 
-  const handleUseItem = async (itemId) => {
+  const handleUseItem = async (item) => {
     try {
-      await shopApi.useItem(itemId);
-      setSuccessMessage('Item used!');
-      setTimeout(() => setSuccessMessage(''), 2000);
+      const result = await shopApi.useItem(item.id);
+      if (item.id === 'freezeStreak') {
+        pushToast({ type: 'achievement', title: 'Streaks Protected', message: 'Your streaks are frozen for the next 24 hours. ❄️' });
+      } else {
+        const newHp = result?.pet?.hp;
+        pushToast({
+          type: 'success',
+          title: 'Potion Used',
+          message: newHp != null ? `Your companion recovered — HP is now ${newHp}/100.` : 'Your companion feels better!'
+        });
+        triggerCelebrate(); // pet does a happy victory lap
+      }
       onUseItem?.();
     } catch (err) {
-      setError(err.message || 'Failed to use item');
-      setTimeout(() => setError(''), 2000);
+      pushToast({ type: 'error', title: 'Cannot Use Item', message: err.message });
     }
   };
 
   const handleSetBackground = async (backgroundId) => {
     try {
       await shopApi.setBackground(backgroundId);
-      setSuccessMessage('Background updated!');
-      setTimeout(() => setSuccessMessage(''), 2000);
+      pushToast({
+        type: 'success',
+        title: 'Habitat Changed',
+        message: backgroundId === 'default' ? 'Back to the default habitat.' : 'Your companion has moved to a new home!'
+      });
       onSetBackground?.(backgroundId);
     } catch (err) {
-      setError(err.message || 'Failed to set background');
-      setTimeout(() => setError(''), 2000);
+      pushToast({ type: 'error', title: 'Failed to Set Background', message: err.message });
     }
   };
 
   const filteredItems = items.filter(item => item.category === activeTab);
+  const freezeActive = freezeProtectionUntil && new Date(freezeProtectionUntil) > new Date();
 
   if (!isOpen) return null;
 
@@ -137,6 +148,11 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
                 </div>
               </div>
               <div className="flex items-center gap-4">
+                {freezeActive && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-cyan-500/10 border border-cyan-400/30 rounded-full text-cyan-300 text-xs font-bold">
+                    ❄️ Streaks protected
+                  </div>
+                )}
                 <div className="flex items-center gap-2 px-4 py-2 bg-accentAmber/10 border border-accentAmber/30 rounded-full shadow-[0_0_12px_rgba(232,160,32,0.2)]">
                   <span className="text-xl">🪙</span>
                   <span className="font-bold text-accentAmber">{coins}</span>
@@ -178,24 +194,6 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
             </div>
           </div>
 
-          {/* Messages */}
-          <AnimatePresence>
-            {(error || successMessage) && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className={`mx-6 mt-4 px-4 py-2 rounded-lg font-bold text-sm text-center ${
-                  error 
-                    ? 'bg-accentRust/20 border border-accentRust/30 text-accentRust' 
-                    : 'bg-success/20 border border-success/30 text-success'
-                }`}
-              >
-                {error || successMessage}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(85vh-200px)] custom-scrollbar">
             {loading ? (
@@ -205,118 +203,114 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredItems.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ y: -4 }}
-                    className={`relative bg-surface border rounded-2xl p-5 transition shadow-lg ${
-                      item.owned 
-                        ? 'border-success/30 bg-success/5 shadow-[0_0_12px_rgba(34,197,94,0.1)]' 
-                        : 'border-borderSubtle hover:border-accentAmber/50 hover:shadow-[0_0_15px_rgba(232,160,32,0.15)]'
-                    }`}
-                  >
-                    {/* Background preview for background items */}
-                    {item.category === 'background' && (
-                      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${BACKGROUND_GRADIENTS[item.id] || BACKGROUND_GRADIENTS.default} opacity-30`} />
-                    )}
-
-                    <div className="relative">
-                      {/* Owned badge */}
-                      {item.owned && (
-                        <div className="absolute -top-2 -right-2 bg-success text-background text-[10px] font-bold px-2 py-1 rounded-md tracking-wider uppercase shadow-[0_0_8px_rgba(34,197,94,0.4)]">
-                          ✓ Owned
-                        </div>
+                {filteredItems.map((item) => {
+                  const pool = INVENTORY_POOLS[item.id];
+                  const ownedCount = pool ? (inventory?.[pool] || 0) : 0;
+                  const isActiveBg = inventory?.activeBackground === item.id;
+                  return (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileHover={{ y: -4 }}
+                      className={`card-cut relative bg-surface border p-5 transition shadow-lg ${
+                        item.owned || isActiveBg
+                          ? 'border-success/30 bg-success/5 shadow-[0_0_12px_rgba(34,197,94,0.1)]'
+                          : 'border-borderSubtle hover:border-accentAmber/50 hover:shadow-[0_0_15px_rgba(232,160,32,0.15)]'
+                      }`}
+                    >
+                      {/* Background preview for background items */}
+                      {item.category === 'background' && (
+                        <div className={`absolute inset-0 bg-gradient-to-br ${BACKGROUND_GRADIENTS[item.id] || BACKGROUND_GRADIENTS.default} opacity-30`} />
                       )}
 
-                      {/* Item emoji */}
-                      <div className="text-5xl mb-3 text-center drop-shadow-xl">
-                        {item.emoji}
-                      </div>
+                      <div className="relative">
+                        {/* Owned badge */}
+                        {item.owned && (
+                          <div className="absolute -top-2 -right-2 bg-success text-background text-[10px] font-bold px-2 py-1 rounded-md tracking-wider uppercase shadow-[0_0_8px_rgba(34,197,94,0.4)]">
+                            ✓ Owned
+                          </div>
+                        )}
 
-                      {/* Item info */}
-                      <h3 className="font-bold text-lg mb-1 text-textPrimary">{item.name}</h3>
-                      <p className="text-xs text-textMuted mb-4 line-clamp-2">
-                        {item.description}
-                      </p>
-
-                      {/* Price and action */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <span>🪙</span>
-                          <span className={`font-bold ${coins >= item.price ? 'text-accentAmber' : 'text-accentRust'}`}>
-                            {item.price}
-                          </span>
+                        {/* Item emoji */}
+                        <div className="text-5xl mb-3 text-center drop-shadow-xl">
+                          {item.emoji}
                         </div>
 
-                        {item.category === 'background' ? (
-                          item.owned ? (
-                            <button
-                              onClick={() => handleSetBackground(item.id)}
-                              disabled={inventory?.activeBackground === item.id}
-                              className={`px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition ${
-                                inventory?.activeBackground === item.id
-                                  ? 'bg-success/10 text-success border border-success/30 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.2)]'
-                                  : 'bg-surfaceElevated hover:bg-surface text-textPrimary border border-borderSubtle'
-                              }`}
-                            >
-                              {inventory?.activeBackground === item.id ? '✓ Active' : 'Set Active'}
-                            </button>
+                        {/* Item info */}
+                        <h3 className="font-bold text-lg mb-1 text-textPrimary">{item.name}</h3>
+                        <p className="text-xs text-textMuted mb-4 line-clamp-2">
+                          {item.description}
+                        </p>
+
+                        {/* Price and action */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            <span>🪙</span>
+                            <span className={`font-bold ${coins >= item.price ? 'text-accentAmber' : 'text-accentRust'}`}>
+                              {item.price}
+                            </span>
+                          </div>
+
+                          {item.category === 'background' ? (
+                            item.owned ? (
+                              <button
+                                onClick={() => handleSetBackground(item.id)}
+                                disabled={isActiveBg}
+                                className={`px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition ${
+                                  isActiveBg
+                                    ? 'bg-success/10 text-success border border-success/30 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.2)]'
+                                    : 'btn-solid'
+                                }`}
+                              >
+                                {isActiveBg ? '✓ Active' : 'Set Active'}
+                              </button>
+                            ) : (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handlePurchase(item)}
+                                disabled={purchasing === item.id || coins < item.price}
+                                className="btn-solid px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition disabled:opacity-40"
+                              >
+                                {purchasing === item.id ? '...' : 'Buy'}
+                              </motion.button>
+                            )
                           ) : (
                             <motion.button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={() => handlePurchase(item)}
                               disabled={purchasing === item.id || coins < item.price}
-                              className="px-4 py-2 bg-gradient-to-r from-accentRust to-accentAmber hover:from-accentAmber hover:to-accentRust rounded-lg font-bold text-xs uppercase tracking-wider text-background shadow-[0_0_12px_rgba(232,160,32,0.3)] transition disabled:opacity-50 disabled:grayscale"
+                              className="btn-solid px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition disabled:opacity-40"
                             >
                               {purchasing === item.id ? '...' : 'Buy'}
                             </motion.button>
-                          )
-                        ) : (
-                          <div className="flex gap-2">
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handlePurchase(item)}
-                              disabled={purchasing === item.id || coins < item.price}
-                              className="px-4 py-2 bg-gradient-to-r from-accentRust to-accentAmber hover:from-accentAmber hover:to-accentRust rounded-lg font-bold text-xs uppercase tracking-wider text-background shadow-[0_0_12px_rgba(232,160,32,0.3)] transition disabled:opacity-50 disabled:grayscale"
-                            >
-                              {purchasing === item.id ? '...' : 'Buy'}
-                            </motion.button>
+                          )}
+                        </div>
+
+                        {/* Inventory count + Use for consumables */}
+                        {item.category === 'consumable' && (
+                          <div className="mt-3 pt-3 border-t border-borderSubtle flex items-center justify-between">
+                            <span className="text-[10px] text-textMuted uppercase font-bold tracking-wider">In inventory:</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-textPrimary text-sm">{ownedCount}</span>
+                              {ownedCount > 0 && (
+                                <button
+                                  onClick={() => handleUseItem(item)}
+                                  className="px-3 py-1 bg-success/10 hover:bg-success/20 border border-success/30 rounded-md text-[10px] text-success font-bold uppercase tracking-wider transition shadow-[0_0_8px_rgba(34,197,94,0.1)]"
+                                >
+                                  Use
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
-
-                      {/* Inventory count for consumables */}
-                      {item.category === 'consumable' && (
-                        <div className="mt-3 pt-3 border-t border-borderSubtle flex items-center justify-between">
-                          <span className="text-[10px] text-textMuted uppercase font-bold tracking-wider">In inventory:</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-textPrimary text-sm">
-                              {item.id.includes('healthPotion') || item.id === 'superHealthPotion'
-                                ? inventory?.healthPotions || 0
-                                : item.id === 'freezeStreak'
-                                ? inventory?.freezeStreaks || 0
-                                : 0}
-                            </span>
-                            {((item.id.includes('healthPotion') && (inventory?.healthPotions || 0) > 0) ||
-                              (item.id === 'freezeStreak' && (inventory?.freezeStreaks || 0) > 0)) && (
-                              <button
-                                onClick={() => handleUseItem(item.id)}
-                                className="px-3 py-1 bg-success/10 hover:bg-success/20 border border-success/30 rounded-md text-[10px] text-success font-bold uppercase tracking-wider transition shadow-[0_0_8px_rgba(34,197,94,0.1)]"
-                              >
-                                Use
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -326,8 +320,13 @@ export default function ItemShop({ isOpen, onClose, coins, inventory, onPurchase
             <div className="flex items-center justify-center gap-8 text-[11px] font-bold uppercase tracking-wider">
               <div className="flex items-center gap-2">
                 <span className="drop-shadow-md">🧪</span>
-                <span className="text-textMuted">Health Potions:</span>
+                <span className="text-textMuted">Potions:</span>
                 <span className="text-accentAmber">{inventory?.healthPotions || 0}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="drop-shadow-md">💖</span>
+                <span className="text-textMuted">Super Potions:</span>
+                <span className="text-accentAmber">{inventory?.superHealthPotions || 0}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="drop-shadow-md">❄️</span>
