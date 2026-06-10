@@ -145,6 +145,7 @@ function App() {
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [silentRefreshing, setSilentRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [petState, setPetState] = useState(null);
@@ -267,9 +268,13 @@ function App() {
   console.log('✅ Authenticated, showing dashboard');
 
   // ========== ASYNC FUNCTIONS ==========
-  async function loadData() {
+  async function loadData(silent = false) {
     try {
-      setLoading(true);
+      if (silent) {
+        setSilentRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       const [habitsData, petData, inventoryData] = await Promise.all([
         habitsApi.getAll(),
         petApi.get(),
@@ -282,10 +287,14 @@ function App() {
       setFreezeProtectionUntil(inventoryData.freezeProtectionUntil || null);
       setActiveBackground(inventoryData.inventory?.activeBackground || 'default');
     } catch (err) {
-      setError(err.message);
+      if (!silent) setError(err.message);
       console.error('Failed to load data:', err);
     } finally {
-      setLoading(false);
+      if (silent) {
+        setSilentRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
   }
 
@@ -799,11 +808,11 @@ function App() {
         coins={coins}
         inventory={inventory}
         freezeProtectionUntil={freezeProtectionUntil}
-        onPurchase={loadData}
-        onUseItem={loadData}
+        onPurchase={() => loadData(true)}
+        onUseItem={() => loadData(true)}
         onSetBackground={(bg) => {
           setActiveBackground(bg);
-          loadData();
+          loadData(true);
         }}
       />
 
