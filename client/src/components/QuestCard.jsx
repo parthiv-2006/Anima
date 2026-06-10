@@ -1,47 +1,38 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Crown } from 'lucide-react';
 
 const categoryConfig = {
-  STR: { 
-    gradient: 'from-statSTR/20 to-statSTR/5', 
+  STR: {
     border: 'border-l-statSTR',
     accent: 'text-statSTR',
-    glow: 'shadow-[0_0_8px_rgba(232,160,32,0.4)]'
+    glowColor: 'rgba(232,160,32,0.45)',
+    pipColor: '#e8a020'
   },
-  INT: { 
-    gradient: 'from-statINT/20 to-statINT/5', 
+  INT: {
     border: 'border-l-statINT',
     accent: 'text-statINT',
-    glow: 'shadow-[0_0_8px_rgba(59,130,246,0.4)]'
+    glowColor: 'rgba(59,130,246,0.45)',
+    pipColor: '#3b82f6'
   },
-  SPI: { 
-    gradient: 'from-statSPI/20 to-statSPI/5', 
+  SPI: {
     border: 'border-l-statSPI',
     accent: 'text-statSPI',
-    glow: 'shadow-[0_0_8px_rgba(34,197,94,0.4)]'
+    glowColor: 'rgba(34,197,94,0.45)',
+    pipColor: '#22c55e'
   }
 };
 
-async function triggerConfetti() {
-  const confetti = (await import('canvas-confetti')).default;
-  confetti({
-    particleCount: 60,
-    spread: 60,
-    origin: { y: 0.7 }
-  });
-}
-
-function QuestCard({ habit, onComplete, onReset, onDelete }) {
+function QuestCard({ habit, onComplete, onReset, onDelete, featured = false }) {
   const [floatKey, setFloatKey] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
-  const handleComplete = async (e) => {
+  const handleComplete = (e) => {
     e.stopPropagation();
-    if (habit.isCompletedToday) return; // Already completed
-
+    if (habit.isCompletedToday) return;
     setFloatKey((k) => k + 1);
     onComplete?.(habit);
-    await triggerConfetti();
   };
 
   const handleReset = (e) => {
@@ -58,8 +49,7 @@ function QuestCard({ habit, onComplete, onReset, onDelete }) {
     setShowMenu(false);
   };
 
-  // Calculate XP reward (10 * difficulty)
-  const xpReward = 10 * habit.difficulty;
+  const xpReward = 10 * habit.difficulty * (featured ? 2 : 1);
   const statReward = 5 * habit.difficulty;
   const config = categoryConfig[habit.statCategory] || categoryConfig.STR;
 
@@ -68,24 +58,38 @@ function QuestCard({ habit, onComplete, onReset, onDelete }) {
       <motion.button
         onClick={handleComplete}
         disabled={habit.isCompletedToday}
-        whileHover={{ scale: habit.isCompletedToday ? 1 : 1.02, y: habit.isCompletedToday ? 0 : -2 }}
-        whileTap={{ scale: habit.isCompletedToday ? 1 : 0.98 }}
-        className={`relative w-full text-left bg-surfaceElevated backdrop-blur-sm border-l-[3px] ${config.border} rounded-[12px] p-4 overflow-hidden transition-all duration-300 ${
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        whileHover={{ scale: habit.isCompletedToday ? 1 : 1.015, x: habit.isCompletedToday ? 0 : -3 }}
+        whileTap={{ scale: habit.isCompletedToday ? 1 : 0.985 }}
+        className={`card-cut relative w-full text-left bg-surfaceElevated border-l-[3px] ${config.border} p-4 overflow-hidden transition-all duration-300 ${
           habit.isCompletedToday
             ? 'opacity-50 cursor-not-allowed border-r border-t border-b border-success/30 line-through'
-            : `border-r border-t border-b border-borderSubtle hover:border-borderSubtle hover:${config.glow}`
+            : 'border-r border-t border-b border-borderSubtle'
         }`}
+        style={
+          featured && !habit.isCompletedToday
+            ? {
+                // featured quest: golden glowing frame
+                boxShadow: `inset 0 0 0 1px rgba(250,204,21,0.55), 0 0 16px rgba(250,204,21,0.25)`,
+                background: 'linear-gradient(135deg, rgba(250,204,21,0.07), rgba(26,34,54,0.7) 45%)'
+              }
+            : hovered && !habit.isCompletedToday
+            ? { boxShadow: `inset 0 0 0 1px ${config.pipColor}, 0 0 12px ${config.glowColor}` }
+            : undefined
+        }
       >
-        {/* Background gradient */}
-        <div className={`absolute inset-0 bg-gradient-to-r ${config.gradient} opacity-50`} />
-        
-        {/* Content */}
         <div className="relative flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className={`text-[10px] font-bold uppercase tracking-wider ${config.accent}`}>
                 {habit.statCategory}
               </span>
+              {featured && (
+                <span className="flex items-center gap-1 text-[10px] font-bold text-yellow-300 bg-yellow-400/10 px-2 py-0.5 rounded-md border border-yellow-400/40">
+                  <Crown className="w-3 h-3" /> Featured · 2x XP
+                </span>
+              )}
               {habit.streak > 0 && (
                 <span className="flex items-center gap-1 text-[10px] font-bold text-accentAmber bg-accentAmber/10 px-2 py-0.5 rounded-md border border-accentAmber/20">
                   <span>🔥</span> {habit.streak}
@@ -97,11 +101,11 @@ function QuestCard({ habit, onComplete, onReset, onDelete }) {
               <span className="text-xs text-accentAmber">
                 {'★'.repeat(habit.difficulty)}<span className="text-textMuted">{'★'.repeat(3 - habit.difficulty)}</span>
               </span>
-              <span className="text-xs text-accentAmber font-bold">+{xpReward} XP</span>
+              <span className={`text-xs font-bold ${featured ? 'text-yellow-300' : 'text-accentAmber'}`}>+{xpReward} XP</span>
               <span className={`text-xs font-bold ${config.accent}`}>+{statReward} {habit.statCategory}</span>
             </div>
           </div>
-          
+
           {/* Completion indicator */}
           {habit.isCompletedToday ? (
             <div className="flex-shrink-0 w-6 h-6 rounded-md bg-success/20 border border-success/30 flex items-center justify-center shadow-[0_0_8px_rgba(34,197,94,0.4)]">

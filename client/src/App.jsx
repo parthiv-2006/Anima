@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor, LineChart, Scroll } from 'lucide-react';
 import PetStage from './components/PetStage.jsx';
 import QuestCard from './components/QuestCard.jsx';
@@ -18,8 +18,13 @@ import WeeklyInsightsTimeline from './components/WeeklyInsightsTimeline.jsx';
 import AdventureLog from './components/AdventureLog.jsx';
 import QuestCompletionModal from './components/QuestCompletionModal.jsx';
 import MiniQuestLog from './components/MiniQuestLog.jsx';
+import ToastHub from './components/ToastHub.jsx';
+import ComboBanner from './components/ComboBanner.jsx';
+import MilestoneCinematic from './components/MilestoneCinematic.jsx';
 import { usePetStore } from './state/petStore.js';
 import { useAuthStore } from './state/authStore.js';
+import { useUiStore } from './state/uiStore.js';
+import { speciesCssVars } from './theme/speciesTheme.js';
 import { habits as habitsApi, pet as petApi, shop as shopApi } from './services/api.js';
 
 // Avatar emoji mapping for display
@@ -158,6 +163,23 @@ function App() {
   const pet = usePetStore((s) => s.pet);
   const setPet = usePetStore((s) => s.updatePet);
 
+  const pushToast = useUiStore((s) => s.pushToast);
+  const triggerCelebrate = useUiStore((s) => s.triggerCelebrate);
+  const registerCompletion = useUiStore((s) => s.registerCompletion);
+  const noteCompletion = useUiStore((s) => s.noteCompletion);
+  const setMilestone = useUiStore((s) => s.setMilestone);
+  const shakeKey = useUiStore((s) => s.shakeKey);
+  const shakeControls = useAnimationControls();
+
+  // Screen shake on combo hits
+  useEffect(() => {
+    if (!shakeKey) return;
+    shakeControls.start({
+      x: [0, -10, 10, -7, 7, -3, 3, 0],
+      transition: { duration: 0.45, ease: 'easeOut' }
+    });
+  }, [shakeKey, shakeControls]);
+
   // Load data when authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -195,6 +217,17 @@ function App() {
       acc[habit.statCategory].push(habit);
       return acc;
     }, {});
+  }, [habits]);
+
+  // Daily Challenge: one habit per day becomes the Featured Quest (2x XP).
+  // Deterministic pick seeded by the date so it survives reloads.
+  const featuredHabitId = useMemo(() => {
+    if (habits.length === 0) return null;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    let hash = 0;
+    for (const ch of dateStr) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    const sorted = [...habits].sort((a, b) => String(a._id).localeCompare(String(b._id)));
+    return sorted[hash % sorted.length]?._id ?? null;
   }, [habits]);
 
   console.log('🔄 App render - hydrated:', isHydrated, 'authenticated:', isAuthenticated, 'loading:', loading);
@@ -259,8 +292,9 @@ function App() {
       const updatedHabits = await habitsApi.create(habitData);
       setHabits(updatedHabits);
       setShowHabitForm(false);
+      pushToast({ type: 'success', title: 'Quest Added', message: `"${habitData.name}" joined your quest board.` });
     } catch (err) {
-      alert(`Failed to create habit: ${err.message}`);
+      pushToast({ type: 'error', title: 'Quest Failed', message: `Could not create habit: ${err.message}` });
     }
   }
 
@@ -287,6 +321,24 @@ function App() {
       setHeatmapRefreshKey(prev => prev + 1);
       setCompletionModalData(null); // Close modal
 
+      // Gamification: combo chain, pet celebration, mood, streak milestones
+      const combo = registerCompletion();
+      noteCompletion();
+      triggerCelebrate();
+
+      const featured = habit._id === featuredHabitId;
+      const baseXp = 10 * habit.difficulty * (featured ? 2 : 1);
+      pushToast({
+        type: 'success',
+        title: featured ? 'Featured Quest Complete!' : 'Quest Complete',
+        message: `+${Math.round(baseXp * combo.multiplier)} XP${combo.multiplier > 1 ? ` (combo x${combo.multiplier})` : ''}${featured ? ' · 2x featured bonus' : ''}`
+      });
+
+      const updatedHabit = response.habits.find((h) => h._id === habit._id);
+      if (updatedHabit && [7, 30, 100].includes(updatedHabit.streak)) {
+        setMilestone({ days: updatedHabit.streak, habitName: updatedHabit.name });
+      }
+
       // Check for evolution
       if (response.pet.totalXp >= 100 && pet.stage === 1) {
         setShowEvolution(true);
@@ -298,7 +350,7 @@ function App() {
       setHabits((prev) =>
         prev.map((h) => (h._id === habit._id ? { ...h, isCompletedToday: false } : h))
       );
-      alert(`Failed to complete habit: ${err.message}`);
+      pushToast({ type: 'error', title: 'Completion Failed', message: err.message });
     }
   }
 
@@ -309,7 +361,7 @@ function App() {
       setPet(response.pet);
       if (response.coins !== undefined) setCoins(response.coins);
     } catch (err) {
-      alert(`Failed to reset habit: ${err.message}`);
+      pushToast({ type: 'error', title: 'Reset Failed', message: err.message });
     }
   }
 
@@ -317,8 +369,9 @@ function App() {
     try {
       const response = await habitsApi.delete(habit._id);
       setHabits(response.habits);
+      pushToast({ type: 'warning', title: 'Quest Abandoned', message: `"${habit.name}" was removed.` });
     } catch (err) {
-      alert(`Failed to delete habit: ${err.message}`);
+      pushToast({ type: 'error', title: 'Delete Failed', message: err.message });
     }
   }
 
@@ -352,7 +405,11 @@ function App() {
 
   return (
     <>
-      <div className="flex h-screen w-screen overflow-hidden bg-background font-sans text-textPrimary">
+      <motion.div
+        animate={shakeControls}
+        style={speciesCssVars(pet.species)}
+        className="flex h-screen w-screen overflow-hidden bg-background font-sans text-textPrimary"
+      >
       {/* ========== LEFT SIDEBAR ========== */}
       <aside className="w-[60px] flex-shrink-0 relative z-50 bg-nav border-r border-borderSubtle flex flex-col items-center py-4 gap-1 overflow-visible">
           {/* Avatar mini */}
@@ -364,8 +421,16 @@ function App() {
             {AVATAR_EMOJIS[user?.avatar || 'warrior']}
           </button>
           
-          {/* Level badge */}
-          <div className="text-[10px] text-accentAmber font-bold bg-accentAmber/10 rounded-md px-[7px] py-[2px] border border-accentAmber/20 mb-3 shadow-[0_0_8px_rgba(232,160,32,0.15)]">
+          {/* Level badge — tinted by active species */}
+          <div
+            className="text-[10px] font-bold rounded-md px-[7px] py-[2px] border mb-3"
+            style={{
+              color: 'var(--sp-accent)',
+              background: 'var(--sp-soft)',
+              borderColor: 'var(--sp-border)',
+              boxShadow: '0 0 8px var(--sp-soft)'
+            }}
+          >
             Lv {Math.floor(pet.totalXp / 100) + 1}
           </div>
 
@@ -469,7 +534,10 @@ function App() {
                         <div className="text-[9px] tracking-[2px] text-textMuted font-bold uppercase mb-0.5">Your Companion</div>
                         <div className="text-2xl text-textPrimary font-cinzel font-bold">Stage {pet.stage}</div>
                       </div>
-                      <div className="text-[11px] text-accentAmber bg-accentAmber/10 border border-accentAmber/20 rounded-[20px] px-3 py-1 font-semibold tracking-wide">
+                      <div
+                        className="text-[11px] border rounded-[20px] px-3 py-1 font-semibold tracking-wide"
+                        style={{ color: 'var(--sp-accent)', background: 'var(--sp-soft)', borderColor: 'var(--sp-border)' }}
+                      >
                         ✦ {Math.max((pet.stage === 1 ? 100 : 500) - pet.totalXp, 0)} XP to evolve
                       </div>
                     </div>
@@ -497,7 +565,7 @@ function App() {
                       onClick={() => setShowHabitForm(!showHabitForm)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="px-3 py-1.5 bg-gradient-to-r from-accentRust to-accentAmber rounded-[8px] text-[10px] text-background font-bold tracking-[1px] uppercase shadow-[0_0_12px_rgba(232,160,32,0.3)] transition"
+                      className="btn-solid px-3.5 py-1.5 rounded-[8px] text-[10px] font-bold tracking-[1px] uppercase"
                     >
                       + New Quest
                     </motion.button>
@@ -536,7 +604,7 @@ function App() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="bg-surfaceElevated border border-accentAmber/20 rounded-[12px] p-4 relative overflow-hidden"
+                        className="card-asym bg-surfaceElevated border border-accentAmber/20 p-4 relative overflow-hidden"
                       >
                         <div className="absolute inset-0 bg-gradient-to-br from-accentAmber/10 to-transparent pointer-events-none" />
                         <div className="relative flex items-start gap-3 z-10">
@@ -581,21 +649,25 @@ function App() {
                     </motion.div>
                   ) : (
                     <div className="space-y-2.5">
-                      {habits.map((habit, habitIndex) => (
-                        <motion.div
-                          key={habit._id}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.05 * habitIndex }}
-                        >
-                          <QuestCard
-                            habit={habit}
-                            onComplete={requestHabitCompletion}
-                            onReset={handleHabitReset}
-                            onDelete={handleHabitDelete}
-                          />
-                        </motion.div>
-                      ))}
+                      {/* Quest board: scrolls animate in from the right, featured quest first */}
+                      {[...habits]
+                        .sort((a, b) => (b._id === featuredHabitId) - (a._id === featuredHabitId))
+                        .map((habit, habitIndex) => (
+                          <motion.div
+                            key={habit._id}
+                            initial={{ opacity: 0, x: 48, rotate: 0.6 }}
+                            animate={{ opacity: 1, x: 0, rotate: 0 }}
+                            transition={{ delay: 0.07 * habitIndex, type: 'spring', stiffness: 260, damping: 24 }}
+                          >
+                            <QuestCard
+                              habit={habit}
+                              featured={habit._id === featuredHabitId}
+                              onComplete={requestHabitCompletion}
+                              onReset={handleHabitReset}
+                              onDelete={handleHabitDelete}
+                            />
+                          </motion.div>
+                        ))}
                     </div>
                   )}
                 </div>
@@ -611,7 +683,7 @@ function App() {
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="bg-surfaceElevated border border-borderSubtle rounded-[12px] p-3.5"
+                  className="card-notch bg-surfaceElevated border border-borderSubtle p-3.5"
                 >
                   <div className="flex items-center gap-[7px] mb-3">
                     <span className="text-[13px] opacity-80">⚔</span>
@@ -656,7 +728,12 @@ function App() {
             </aside>
           </div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Global overlays */}
+      <ToastHub />
+      <ComboBanner />
+      <MilestoneCinematic />
 
       {/* Modals */}
       <QuestCompletionModal
