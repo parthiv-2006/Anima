@@ -61,8 +61,10 @@ export async function purchaseItem(req, res) {
       user.inventory.backgrounds.push(itemId);
     } else if (item.category === 'consumable') {
       // Add consumable to inventory
-      if (itemId === 'healthPotion' || itemId === 'superHealthPotion') {
+      if (itemId === 'healthPotion') {
         user.inventory.healthPotions += quantity;
+      } else if (itemId === 'superHealthPotion') {
+        user.inventory.superHealthPotions += quantity;
       } else if (itemId === 'freezeStreak') {
         user.inventory.freezeStreaks += quantity;
       }
@@ -102,7 +104,8 @@ export async function useItem(req, res) {
 
     // Check if user has the item
     if (itemId === 'healthPotion' || itemId === 'superHealthPotion') {
-      if (user.inventory.healthPotions <= 0) {
+      const pool = itemId === 'superHealthPotion' ? 'superHealthPotions' : 'healthPotions';
+      if ((user.inventory[pool] || 0) <= 0) {
         return res.status(400).json({ message: 'No health potions in inventory' });
       }
 
@@ -113,8 +116,8 @@ export async function useItem(req, res) {
       } else if (item.effect.type === 'fullHeal') {
         user.pet.hp = 100;
       }
-      user.inventory.healthPotions -= 1;
-      
+      user.inventory[pool] -= 1;
+
     } else if (itemId === 'freezeStreak') {
       if (user.inventory.freezeStreaks <= 0) {
         return res.status(400).json({ message: 'No freeze streaks in inventory' });

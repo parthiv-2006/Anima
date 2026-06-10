@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const InventorySchema = new mongoose.Schema({
   // Consumable items
   healthPotions: { type: Number, default: 0 },
+  superHealthPotions: { type: Number, default: 0 },
   freezeStreaks: { type: Number, default: 0 },
   
   // Unlocked backgrounds (permanent)
