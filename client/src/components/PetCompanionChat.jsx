@@ -170,6 +170,7 @@ export default function PetCompanionChat({ pet, habits }) {
               </div>
             )}
             <div
+              data-testid={msg.role === 'assistant' ? 'pet-message' : undefined}
               className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 msg.role === 'user'
                   ? 'bg-accentAmber/15 border border-accentAmber/25 text-textPrimary rounded-tr-sm'
