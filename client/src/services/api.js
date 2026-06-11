@@ -97,6 +97,19 @@ export const pet = {
   })
 };
 
+// ============ AI APIs ============
+export const ai = {
+  chat: (message, chatHistory) => fetchWithAuth('/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify({ message, chatHistory })
+  }),
+
+  narrate: (entries, petContext) => fetchWithAuth('/ai/narrate', {
+    method: 'POST',
+    body: JSON.stringify({ entries, petContext })
+  })
+};
+
 // ============ Shop APIs ============
 export const shop = {
   getItems: () => fetchWithAuth('/shop/items'),
