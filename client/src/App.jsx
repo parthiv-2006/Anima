@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
-import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor, LineChart, Scroll } from 'lucide-react';
+import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor, LineChart, Scroll, MessageSquare } from 'lucide-react';
 import PetStage from './components/PetStage.jsx';
 import QuestCard from './components/QuestCard.jsx';
 import HabitForm from './components/HabitForm.jsx';
@@ -16,6 +16,7 @@ import AuthForm from './components/AuthForm.jsx';
 import OnboardingWizard from './components/OnboardingWizard.jsx';
 import WeeklyInsightsTimeline from './components/WeeklyInsightsTimeline.jsx';
 import AdventureLog from './components/AdventureLog.jsx';
+import PetCompanionChat from './components/PetCompanionChat.jsx';
 import QuestCompletionModal from './components/QuestCompletionModal.jsx';
 import MiniQuestLog from './components/MiniQuestLog.jsx';
 import ToastHub from './components/ToastHub.jsx';
@@ -467,6 +468,7 @@ function App() {
           <div className="flex-1 flex flex-col gap-1 overflow-visible">
             <NavItem icon={Home} label="Dashboard" active={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')} />
             <NavItem icon={Scroll} label="Adventure Log" active={activeView === 'log'} onClick={() => setActiveView('log')} />
+            <NavItem icon={MessageSquare} label="Pet Chat" active={activeView === 'chat'} onClick={() => setActiveView('chat')} />
             <NavItem icon={ShoppingBag} label="Shop" onClick={() => setShowShop(true)} />
             <NavItem icon={Timer} label="Focus Timer" active={activeView === 'focus'} onClick={() => setActiveView('focus')} />
             <NavItem icon={LineChart} label="Insights" active={activeView === 'insights'} onClick={() => setActiveView('insights')} />
@@ -496,7 +498,7 @@ function App() {
         {/* ========== MAIN AREA ========== */}
         <div className="flex-1 flex flex-col overflow-hidden bg-background">
           <TopBar 
-            title={activeView === 'dashboard' ? `${user?.username || 'Adventurer'}'s Sanctuary` : activeView === 'log' ? 'Adventure Log' : activeView === 'insights' ? 'Analytics' : 'Focus'}
+            title={activeView === 'dashboard' ? `${user?.username || 'Adventurer'}'s Sanctuary` : activeView === 'log' ? 'Adventure Log' : activeView === 'insights' ? 'Analytics' : activeView === 'chat' ? 'Pet Companion' : 'Focus'}
             user={user}
             dominant={dominant}
             totalXP={pet.totalXp}
@@ -546,6 +548,16 @@ function App() {
                 className="h-full"
               >
                 <AdventureLog />
+              </motion.div>
+            ) : activeView === 'chat' ? (
+              <motion.div
+                key="chat"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="h-full bg-surfaceElevated border border-borderSubtle rounded-[16px] overflow-hidden"
+              >
+                <PetCompanionChat pet={pet} habits={habits} />
               </motion.div>
             ) : (
               <motion.div
