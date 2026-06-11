@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js';
 import petRoutes from './routes/petRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
 import shopRoutes from './routes/shopRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 const app = express();
 
@@ -46,5 +47,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/pet', petRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/shop', shopRoutes);
+app.use('/api/ai', aiRoutes);
 
 export default app;
