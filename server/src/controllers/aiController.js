@@ -1,7 +1,13 @@
 import Groq from 'groq-sdk';
 import { User } from '../models/User.js';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// Lazy-initialize so missing GROQ_API_KEY only errors when AI routes are actually called,
+// not at module import time (keeps unit/integration tests for non-AI routes working).
+let _groq;
+function getGroq() {
+  if (!_groq) _groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  return _groq;
+}
 
 const SPECIES_PERSONALITIES = {
   EMBER: {
@@ -73,7 +79,7 @@ HERO CONTEXT (use this to personalize your response):
       { role: 'user', content: message }
     ];
 
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroq().chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages,
       max_tokens: 220,
@@ -119,7 +125,7 @@ Respond ONLY with a valid JSON object in this exact format:
 Quest entries:
 ${entrySummaries}`;
 
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroq().chat.completions.create({
       model: 'llama-3.1-8b-instant',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 180 * limited.length,
