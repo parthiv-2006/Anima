@@ -2,6 +2,7 @@
 
 A habit tracker that turns daily consistency into a visible, evolving creature — three species, nine potential evolution paths, and a decay system that punishes inactivity.
 
+[![CI](https://github.com/parthiv-2006/Anima/actions/workflows/ci.yml/badge.svg)](https://github.com/parthiv-2006/Anima/actions/workflows/ci.yml)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-anima--client.vercel.app-amber?style=flat)](https://anima-client.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-slate?style=flat)](LICENSE)
 
@@ -85,6 +86,8 @@ A distraction-free full-screen view of the pet. Wellness reminders surface as th
 - **Streak coin economy** — coins per completion: `5 × difficulty + min(streak, 7)`; all shop purchases deduct from this balance with an atomic coin-check before purchase
 - **Adventure log** — flat aggregation of all `completionLog` subdocument entries across habits, sorted newest-first by completion date
 - **Productivity heatmap** — per-day aggregation computed server-side; each day bucket tracks `totalXp`, `strXp`, `intXp`, `spiXp`, and per-category habit counts; initialized from account creation date to today so empty days appear correctly
+- **AI pet companion chat** — species-specific personality (EMBER=fiery warrior mentor, AQUA=calm sage, TERRA=grounded nurturer) with live stat context injected into every Groq prompt; session history maintains multi-turn coherence
+- **AI-generated adventure log narration** — on log open, Groq `llama-3.1-8b-instant` generates a 2-sentence fantasy-RPG paragraph per completion; stored in React component state only, regenerated on demand
 - **Rule-based habit recommendations** — identifies the two weakest stats and returns 3 prioritized suggestions with explanations; no LLM dependency
 - **Ambient mode** — full-screen pet view with staggered wellness thought bubbles at random 20-40 minute intervals after an initial 30-second delay
 - **Seven themed environments** — gradient overlays keyed to Tailwind design tokens, with a location badge in the habitat when a non-default background is active
@@ -204,9 +207,12 @@ Create `server/.env`:
 |----------|-------------|
 | `MONGODB_URI` | MongoDB connection string, e.g. `mongodb+srv://user:pass@cluster.mongodb.net/anima` or `mongodb://localhost:27017/anima` |
 | `JWT_SECRET` | Random string of at least 32 characters used to sign and verify JWT tokens |
+| `GROQ_API_KEY` | Groq API key — enables AI pet companion chat and adventure log narration ([get one free](https://console.groq.com)) |
 | `PORT` | Port for the Express server (defaults to `5000` if unset) |
 | `NODE_ENV` | Set to `production` to restrict CORS to `CLIENT_URL`; omit or set to `development` for open CORS |
 | `CLIENT_URL` | Origin URL of the deployed frontend — required when `NODE_ENV=production` |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis URL for production rate limiting (disabled when absent) |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis token |
 
 Create `client/.env`:
 
@@ -232,16 +238,45 @@ Open `http://localhost:5173`.
 
 ## Testing
 
-No automated test suite exists at this time. Manual testing covers:
+### Unit & Integration Tests (Vitest + Supertest)
 
-- Registration and login with JWT issuance and `localStorage` persistence
-- Habit creation, completion, undo, and deletion
-- XP accumulation and stage transition at the 100 XP and 500 XP thresholds
-- Pure vs. hybrid evolution path assignment via the `max >= 2 * min` check
-- Daily streak reset across the UTC midnight boundary
-- Freeze streak protection consumption
-- Focus timer persistence across page refresh via `localStorage` `targetEndTime`
-- Shop purchase, consumable use, and background switching
+Server tests use an in-memory MongoDB — no external database required.
+
+```bash
+# Run everything
+npm test
+
+# Server only (unit + integration)
+npm run test:server
+
+# Client only (unit)
+npm run test:client
+
+# Watch mode
+npm run test:watch -w server
+
+# Coverage report
+npm run test:coverage -w server
+```
+
+**Server unit tests** cover `calculateEvolution()` (all 6 stage/path branches) and `getLocalDateKey()`.
+
+**Server integration tests** hit the real Express app (supertest) with an in-memory MongoDB — auth registration, login, habit CRUD, habit completion with XP/stat/coin math, duplicate-completion guard, reset revert, and adventure log aggregation.
+
+**Client unit tests** cover the `speciesTheme.js` utility (`getSpeciesTheme`, `speciesCssVars`, unknown-species fallback).
+
+### E2E Tests (Playwright)
+
+Requires both dev servers running (`npm run dev:server` in one terminal, `npm run dev:client` in another) and `GROQ_API_KEY` in `server/.env`.
+
+```bash
+npm run test:e2e
+
+# Interactive UI mode
+npm run test:e2e:ui
+```
+
+E2E flows: register, login, create habit, complete habit, view adventure log, open Pet Chat, send a message.
 
 ---
 
@@ -306,12 +341,11 @@ Anima/
 
 ## Known Limitations
 
-- **No automated tests** — no unit, integration, or end-to-end test suite exists; the evolution formula, streak logic, and decay calculation are untested against edge cases such as XP dropping below a stage threshold after a habit undo, or a freeze streak expiring mid-request
 - **Plain JavaScript throughout** — neither client nor server uses TypeScript; a mistyped stat key (e.g. `strength` instead of `str`) silently awards 0 points with no compile-time or runtime error
 - **Unbounded habits array** — habits and their `completionLog` entries embed in the User document; MongoDB's 16 MB document limit becomes a concern after years of daily completions across many habits
 - **UTC-only daily reset** — `dailyReset` uses UTC calendar boundaries; users in large negative UTC offsets (UTC-8 to UTC-12) experience their "midnight reset" between 4 PM and 8 PM local time, which does not match a realistic habit day
 - **Mixed animation quality across species** — the evolution cinematic uses Lottie JSON (vector quality, bundled) for all three Ember stages, but falls back to static PNGs for Aqua and Terra stages 2 and 3; the visual fidelity is inconsistent depending on species choice
-- **No CI/CD pipeline** — no GitHub Actions workflows exist; all deployments are manual
+- **AI narration regenerates on every log open** — narratives are held in React component state and regenerated each time the Adventure Log mounts; a short cache (localStorage or a DB field) would avoid redundant Groq calls
 
 ---
 
