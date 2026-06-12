@@ -160,3 +160,184 @@ ${entrySummaries}`;
     return res.status(500).json({ message: 'The chronicles are silent.', narratives: [] });
   }
 }
+
+// ─── Tool definitions for the agentic loop ────────────────────────────────────
+const AGENT_TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'create_habit',
+      description: 'Create a single new habit/quest for the hero. Use when the user asks to add or create one habit.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Concise action-oriented habit name, e.g. "Morning Run" or "Read 20 Pages"' },
+          statCategory: { type: 'string', enum: ['STR', 'INT', 'SPI'], description: 'STR=physical, INT=mental/learning, SPI=mindfulness/spiritual' },
+          difficulty: { type: 'integer', minimum: 1, maximum: 3, description: '1=easy, 2=moderate, 3=legendary' }
+        },
+        required: ['name', 'statCategory', 'difficulty']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'suggest_morning_routine',
+      description: 'Create a full set of habits as a morning routine or training plan. Use when the user asks for a routine, plan, or program (creates up to 5 habits at once).',
+      parameters: {
+        type: 'object',
+        properties: {
+          habits: {
+            type: 'array',
+            maxItems: 5,
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                statCategory: { type: 'string', enum: ['STR', 'INT', 'SPI'] },
+                difficulty: { type: 'integer', minimum: 1, maximum: 3 }
+              },
+              required: ['name', 'statCategory', 'difficulty']
+            }
+          }
+        },
+        required: ['habits']
+      }
+    }
+  }
+];
+
+function buildAgentSystemPrompt(personality, user, pet, dominantStat) {
+  const habitsSummary = (user.habits || [])
+    .map(h => `"${h.name}" (${h.statCategory}, streak: ${h.streak})`)
+    .join(', ') || 'none yet';
+
+  return `${personality.voice}
+
+HERO CONTEXT:
+- Name: ${user.username}
+- Companion: ${pet.nickname} — Stage ${pet.stage} ${pet.species}
+- HP: ${pet.hp}/100 | XP: ${pet.totalXp} | Dominant stat: ${dominantStat}
+- Stats: STR ${pet.stats.str} | INT ${pet.stats.int} | SPI ${pet.stats.spi}
+- Active quests: ${habitsSummary}
+
+You have tools to CREATE habits for the hero. When the hero asks for a routine, plan, or new habit — call the appropriate tool. Before calling a tool, briefly state what you are about to do in your message content (can also be null for pure tool calls). Stay in character at all times.`;
+}
+
+/**
+ * Agentic chat with HITL (human-in-the-loop) tool confirmation.
+ *
+ * Round 1: model decides whether to call a tool or reply normally.
+ *   → If tool call: return { type: 'pending_confirmation', toolCall, assistantMessage }
+ *   → If normal:    return { type: 'reply', reply }
+ *
+ * Round 2 (confirmedToolCall present): execute the tool, then ask the model
+ * to craft a final in-character response with the tool result in context.
+ *   → return { type: 'reply', reply, sideEffect }
+ */
+export async function agentChat(req, res) {
+  try {
+    const { message, chatHistory = [], confirmedToolCall = null } = req.body;
+    if (!message?.trim() && !confirmedToolCall) {
+      return res.status(400).json({ message: 'Message required' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const { pet } = user;
+    const species = pet.species || 'EMBER';
+    const personality = SPECIES_PERSONALITIES[species] || SPECIES_PERSONALITIES.EMBER;
+    const dominantStat = Object.entries(pet.stats)
+      .sort((a, b) => b[1] - a[1])[0]?.[0]?.toUpperCase() || 'STR';
+    const systemPrompt = buildAgentSystemPrompt(personality, user, pet, dominantStat);
+
+    // ── Round 2: confirmed → execute tool, then get final reply ──────────────
+    if (confirmedToolCall) {
+      const { id: toolCallId, name, args } = confirmedToolCall;
+      let toolResult = '';
+      let sideEffect = null;
+
+      if (name === 'create_habit') {
+        const { name: habitName, statCategory, difficulty } = args;
+        user.habits.push({ name: habitName, statCategory, difficulty });
+        await user.save();
+        const created = user.habits[user.habits.length - 1];
+        toolResult = `Successfully created habit "${habitName}" (${statCategory}, difficulty ${difficulty}).`;
+        sideEffect = { type: 'habit_created', habit: created.toObject() };
+
+      } else if (name === 'suggest_morning_routine') {
+        const toCreate = (args.habits || []).slice(0, 5);
+        for (const h of toCreate) {
+          user.habits.push({ name: h.name, statCategory: h.statCategory, difficulty: h.difficulty || 1 });
+        }
+        await user.save();
+        const names = toCreate.map(h => h.name).join(', ');
+        toolResult = `Created ${toCreate.length} habits: ${names}.`;
+        sideEffect = { type: 'habits_created', count: toCreate.length };
+      }
+
+      // Feed the tool result back to the model for an in-character response
+      const messagesWithResult = [
+        { role: 'system', content: systemPrompt },
+        ...chatHistory.slice(-8).map(m => ({ role: m.role, content: m.content })),
+        {
+          role: 'assistant',
+          content: null,
+          tool_calls: [{
+            id: toolCallId,
+            type: 'function',
+            function: { name, arguments: JSON.stringify(args) }
+          }]
+        },
+        { role: 'tool', tool_call_id: toolCallId, content: toolResult }
+      ];
+
+      const finalCompletion = await getGroq().chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: messagesWithResult,
+        max_tokens: 250,
+        temperature: 0.85
+      });
+
+      const reply = finalCompletion.choices[0]?.message?.content?.trim() || 'Done!';
+      return res.json({ type: 'reply', reply, sideEffect });
+    }
+
+    // ── Round 1: initial message → model decides ──────────────────────────────
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...chatHistory.slice(-8).map(m => ({ role: m.role, content: m.content })),
+      { role: 'user', content: message }
+    ];
+
+    const completion = await getGroq().chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      tools: AGENT_TOOLS,
+      tool_choice: 'auto',
+      max_tokens: 300,
+      temperature: 0.85
+    });
+
+    const choice = completion.choices[0];
+    const assistantMsg = choice.message;
+
+    if (assistantMsg.tool_calls?.length > 0) {
+      const tc = assistantMsg.tool_calls[0];
+      const args = JSON.parse(tc.function.arguments);
+      return res.json({
+        type: 'pending_confirmation',
+        toolCall: { id: tc.id, name: tc.function.name, args },
+        assistantMessage: assistantMsg.content || null
+      });
+    }
+
+    const reply = assistantMsg.content?.trim() || 'The spirits are restless… try again.';
+    return res.json({ type: 'reply', reply });
+
+  } catch (err) {
+    console.error('Agent chat error:', err);
+    return res.status(500).json({ message: 'The spirits are silent. Try again shortly.' });
+  }
+}
