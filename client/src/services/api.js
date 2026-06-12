@@ -104,6 +104,11 @@ export const ai = {
     body: JSON.stringify({ message, chatHistory })
   }),
 
+  agentChat: (payload) => fetchWithAuth('/ai/agent', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
+
   narrate: (entries, petContext) => fetchWithAuth('/ai/narrate', {
     method: 'POST',
     body: JSON.stringify({ entries, petContext })

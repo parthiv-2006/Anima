@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { Home, ShoppingBag, Timer, BookOpen, Settings, LogOut, Sparkles, Monitor, LineChart, Scroll, MessageSquare } from 'lucide-react';
 import PetStage from './components/PetStage.jsx';
+const Habitat3DPanel = lazy(() => import('./components/Habitat3DPanel.jsx'));
 import QuestCard from './components/QuestCard.jsx';
 import HabitForm from './components/HabitForm.jsx';
 import EvolutionEvent from './components/EvolutionEvent.jsx';
@@ -27,6 +28,16 @@ import { useAuthStore } from './state/authStore.js';
 import { useUiStore } from './state/uiStore.js';
 import { speciesCssVars } from './theme/speciesTheme.js';
 import { habits as habitsApi, pet as petApi, shop as shopApi } from './services/api.js';
+
+function isWebGLSupported() {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext &&
+      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+  } catch {
+    return false;
+  }
+}
 
 // Avatar emoji mapping for display
 const AVATAR_EMOJIS = {
@@ -162,6 +173,7 @@ function App() {
   const [freezeProtectionUntil, setFreezeProtectionUntil] = useState(null);
   const [activeBackground, setActiveBackground] = useState('default');
   const [completionModalData, setCompletionModalData] = useState(null); // { habit } or null
+  const [use3D, setUse3D] = useState(() => isWebGLSupported());
 
   const pet = usePetStore((s) => s.pet);
   const setPet = usePetStore((s) => s.updatePet);
@@ -557,7 +569,7 @@ function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="h-full bg-surfaceElevated border border-borderSubtle rounded-[16px] overflow-hidden"
               >
-                <PetCompanionChat pet={pet} habits={habits} />
+                <PetCompanionChat pet={pet} habits={habits} onRefresh={() => loadData(true)} />
               </motion.div>
             ) : (
               <motion.div
@@ -576,25 +588,62 @@ function App() {
                         <div className="text-[9px] tracking-[2px] text-textMuted font-bold uppercase mb-0.5">Your Companion</div>
                         <div className="text-2xl text-textPrimary font-cinzel font-bold">Stage {pet.stage}</div>
                       </div>
-                      <div
-                        className="text-[11px] border rounded-[20px] px-3 py-1 font-semibold tracking-wide"
-                        style={{ color: 'var(--sp-accent)', background: 'var(--sp-soft)', borderColor: 'var(--sp-border)' }}
-                      >
-                        ✦ {Math.max((pet.stage === 1 ? 100 : 500) - pet.totalXp, 0)} XP to evolve
+                      <div className="flex items-center gap-2">
+                        {!use3D && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setUse3D(true)}
+                            className="text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-lg border transition"
+                            style={{ color: 'var(--sp-accent)', background: 'var(--sp-soft)', borderColor: 'var(--sp-border)' }}
+                            title="Switch to 3D habitat"
+                          >
+                            ✦ 3D
+                          </motion.button>
+                        )}
+                        <div
+                          className="text-[11px] border rounded-[20px] px-3 py-1 font-semibold tracking-wide"
+                          style={{ color: 'var(--sp-accent)', background: 'var(--sp-soft)', borderColor: 'var(--sp-border)' }}
+                        >
+                          ✦ {Math.max((pet.stage === 1 ? 100 : 500) - pet.totalXp, 0)} XP to evolve
+                        </div>
                       </div>
                     </div>
 
-                    <PetStage
-                      petType={pet.species}
-                      evolutionStage={pet.stage}
-                      totalXp={pet.totalXp}
-                      petState={petState}
-                      background={activeBackground}
-                      hp={pet.hp}
-                      petStats={pet.stats}
-                      potionCount={(inventory?.healthPotions || 0) + (inventory?.superHealthPotions || 0)}
-                      onQuickHeal={handleQuickHeal}
-                    />
+                    {use3D ? (
+                      <Suspense fallback={
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-500" />
+                        </div>
+                      }>
+                        <Habitat3DPanel
+                          petType={pet.species}
+                          evolutionStage={pet.stage}
+                          totalXp={pet.totalXp}
+                          petState={petState}
+                          hp={pet.hp}
+                          petStats={pet.stats}
+                          potionCount={(inventory?.healthPotions || 0) + (inventory?.superHealthPotions || 0)}
+                          onQuickHeal={handleQuickHeal}
+                          onSwitchTo2D={() => setUse3D(false)}
+                          pet={pet}
+                          habits={habits}
+                        />
+                      </Suspense>
+                    ) : (
+                      <PetStage
+                        petType={pet.species}
+                        evolutionStage={pet.stage}
+                        totalXp={pet.totalXp}
+                        petState={petState}
+                        background={activeBackground}
+                        hp={pet.hp}
+                        petStats={pet.stats}
+                        potionCount={(inventory?.healthPotions || 0) + (inventory?.superHealthPotions || 0)}
+                        onQuickHeal={handleQuickHeal}
+                        onSwitchTo2D3D={() => setUse3D(true)}
+                      />
+                    )}
                   </div>
                 </div>
 
