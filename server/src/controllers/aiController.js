@@ -221,7 +221,7 @@ HERO CONTEXT:
 - Stats: STR ${pet.stats.str} | INT ${pet.stats.int} | SPI ${pet.stats.spi}
 - Active quests: ${habitsSummary}
 
-You have tools to CREATE habits for the hero. When the hero asks for a routine, plan, or new habit — call the appropriate tool. Before calling a tool, briefly state what you are about to do in your message content (can also be null for pure tool calls). Stay in character at all times.`;
+You have tools to CREATE habits for the hero. When the hero asks for a routine, plan, or to add/create any habit, you MUST call the appropriate tool immediately — do not merely describe the routine in text and do not ask clarifying questions first; pick sensible defaults yourself. Before calling a tool, briefly state what you are about to do in your message content (can also be null for pure tool calls). Stay in character at all times.`;
 }
 
 /**
@@ -317,7 +317,9 @@ export async function agentChat(req, res) {
       tools: AGENT_TOOLS,
       tool_choice: 'auto',
       max_tokens: 300,
-      temperature: 0.85
+      // Low temperature keeps the create-habit → tool-call mapping reliable;
+      // the in-character flavor comes from the round-2 reply at 0.85.
+      temperature: 0.3
     });
 
     const choice = completion.choices[0];
