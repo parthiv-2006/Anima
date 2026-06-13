@@ -45,4 +45,45 @@ test.describe('Pet Companion Chat', () => {
     const replyBubble = page.locator('[data-testid="pet-message"]').first();
     await expect(replyBubble).toBeVisible({ timeout: 20000 });
   });
+
+  test('conversation persists when leaving and returning to the chat tab', async ({ page }) => {
+    test.setTimeout(40000);
+
+    await registerAndLogin(page);
+    await page.getByRole('button', { name: /pet chat/i }).click();
+
+    // Send a unique message (not a starter chip, so its text is unambiguous)
+    const secret = 'Please remember the word galadriel';
+    await page.getByPlaceholder(/ask .*or say/i).fill(secret);
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[data-testid="pet-message"]').first()).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText(secret)).toBeVisible();
+
+    // Leave the chat tab and come back
+    await page.getByRole('button', { name: /dashboard/i }).click();
+    await page.getByRole('button', { name: /pet chat/i }).click();
+
+    // The message survived — the chat did not reset to the welcome screen
+    await expect(page.getByText(secret)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('starting a new chat seals the conversation into Echoes', async ({ page }) => {
+    test.setTimeout(40000);
+
+    await registerAndLogin(page);
+    await page.getByRole('button', { name: /pet chat/i }).click();
+
+    await page.getByPlaceholder(/ask .*or say/i).fill('A short friendly greeting');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[data-testid="pet-message"]').first()).toBeVisible({ timeout: 20000 });
+
+    // Start a new chat — the active conversation is archived
+    await page.getByRole('button', { name: /new chat/i }).click();
+    await expect(page.getByText(/awaits/i)).toBeVisible({ timeout: 5000 });
+
+    // The Echoes tab now holds the sealed conversation
+    await page.getByRole('button', { name: /echoes/i }).click();
+    await expect(page.getByText(/echoes of past conversations/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('A short friendly greeting')).toBeVisible();
+  });
 });
