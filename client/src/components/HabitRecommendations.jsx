@@ -140,9 +140,18 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
             transition={{ delay: idx * 0.1 }}
             className="group relative"
           >
-            <button
+            {/* div, not button: the Add control nested inside must stay a real <button> */}
+            <div
+              role="button"
+              tabIndex={0}
               onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
-              className={`w-full p-3 rounded-lg border transition-all text-left ${
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setExpandedIndex(expandedIndex === idx ? null : idx);
+                }
+              }}
+              className={`w-full p-3 rounded-lg border transition-all text-left cursor-pointer ${
                 rec.priority === 'high'
                   ? 'bg-accentRust/10 border-accentRust/30 hover:border-accentRust/50'
                   : 'bg-surfaceElevated border-borderSubtle hover:border-accentAmber/30'
@@ -196,7 +205,7 @@ export default function HabitRecommendations({ onAddHabit, onAddHabitCallback, r
                   </p>
                 </motion.div>
               )}
-            </button>
+            </div>
           </motion.div>
         ))}
       </div>

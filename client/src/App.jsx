@@ -198,7 +198,6 @@ function App() {
   // Load data when authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('User authenticated, loading data...');
       loadData();
     }
   }, [isAuthenticated]);
@@ -245,13 +244,10 @@ function App() {
     return sorted[hash % sorted.length]?._id ?? null;
   }, [habits]);
 
-  console.log('🔄 App render - hydrated:', isHydrated, 'authenticated:', isAuthenticated, 'loading:', loading);
-
   // ========== CONDITIONAL RENDERING (after all hooks) ==========
 
   // Wait for hydration before rendering
   if (!isHydrated) {
-    console.log('⏳ Waiting for hydration...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 font-display flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500" />
@@ -261,13 +257,11 @@ function App() {
 
   // Show auth form if not authenticated
   if (!isAuthenticated) {
-    console.log('❌ Not authenticated, showing AuthForm');
     return <AuthForm />;
   }
 
   // Show onboarding wizard if needed
   if (needsOnboarding) {
-    console.log('🎮 Showing onboarding wizard');
     return (
       <OnboardingWizard
         onComplete={() => {
@@ -277,8 +271,6 @@ function App() {
       />
     );
   }
-
-  console.log('✅ Authenticated, showing dashboard');
 
   // ========== ASYNC FUNCTIONS ==========
   async function loadData(silent = false) {
