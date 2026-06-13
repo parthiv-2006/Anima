@@ -11,13 +11,13 @@ test.describe('Authentication', () => {
     await expect(page.getByRole('heading', { name: /anima/i })).toBeVisible();
 
     // Switch to register tab
-    await page.getByRole('tab', { name: /register/i }).click();
+    await page.getByRole('button', { name: /register/i }).first().click();
 
-    await page.getByPlaceholder(/username/i).fill('E2EWarrior');
+    await page.getByPlaceholder(/choose your name/i).fill('E2EWarrior');
     await page.getByPlaceholder(/email/i).fill(uniqueEmail());
-    await page.getByPlaceholder(/password/i).fill('Password123!');
+    await page.locator('input[type="password"]').fill('Password123!');
 
-    await page.getByRole('button', { name: /create account/i }).click();
+    await page.getByRole('button', { name: /begin your journey/i }).click();
 
     // Should land on dashboard — pet panel visible
     await expect(page.getByText(/E2EWarrior/i)).toBeVisible({ timeout: 10000 });
@@ -34,8 +34,8 @@ test.describe('Authentication', () => {
 
     await page.goto('/');
     await page.getByPlaceholder(/email/i).fill(email);
-    await page.getByPlaceholder(/password/i).fill(password);
-    await page.getByRole('button', { name: /log in/i }).click();
+    await page.locator('input[type="password"]').fill(password);
+    await page.getByRole('button', { name: /enter the sanctuary/i }).click();
 
     await expect(page.getByText(/LoginTester/i)).toBeVisible({ timeout: 10000 });
   });

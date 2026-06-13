@@ -4,14 +4,20 @@ async function registerAndLogin(page) {
   const email = `e2e_${Date.now()}@anima.dev`;
   const password = 'Password123!';
 
-  await page.request.post('http://localhost:5000/api/auth/register', {
+  const regRes = await page.request.post('http://localhost:5000/api/auth/register', {
     data: { username: 'ChatTester', email, password, species: 'EMBER' }
+  });
+  // Seed one quest so the user skips the onboarding wizard and lands on the dashboard.
+  const { token } = await regRes.json();
+  await page.request.post('http://localhost:5000/api/habits', {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { name: 'Bootstrap Quest', statCategory: 'STR', difficulty: 1 }
   });
 
   await page.goto('/');
   await page.getByPlaceholder(/email/i).fill(email);
-  await page.getByPlaceholder(/password/i).fill(password);
-  await page.getByRole('button', { name: /log in/i }).click();
+  await page.locator('input[type="password"]').fill(password);
+  await page.getByRole('button', { name: /enter the sanctuary/i }).click();
   await expect(page.getByText(/ChatTester/i)).toBeVisible({ timeout: 10000 });
 }
 
