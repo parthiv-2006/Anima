@@ -140,3 +140,19 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Playwright artifacts
+test-results/
+playwright-report/
+
+# Local debugging screenshots / recordings (root-level scratch only)
+/*.png
+/*.webm
+.github/assets/*.png
+.github/assets/*.webm
+old_App.jsx
+
+# Agent tooling caches
+.omc/
+.claude/
+**/.omc/
