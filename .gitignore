@@ -152,6 +152,9 @@ playwright-report/
 .github/assets/*.webm
 old_App.jsx
 
+# Demo frame source images (GIF already committed; frames are build artifacts)
+.github/assets/demo-frames/
+
 # Agent tooling caches
 .omc/
 .claude/
