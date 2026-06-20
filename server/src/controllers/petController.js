@@ -13,6 +13,9 @@ export function calculateEvolution(pet) {
     const dominant = Object.entries(pet.stats).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
     pet.stage = 2;
     pet.evolutionPath = `${pet.species}_${dominant.toUpperCase()}`;
+  } else {
+    pet.stage = 1;
+    pet.evolutionPath = `${pet.species}_BASE`;
   }
 }
 
@@ -49,7 +52,7 @@ export async function applyDecay(req, res) {
   const hours = (Date.now() - last.getTime()) / (1000 * 60 * 60);
   if (hours > 24) {
     user.pet.hp = Math.max(0, Math.round((user.pet.hp || 100) * 0.9));
-    user.habits = user.habits.map((h) => ({ ...h.toObject(), isCompletedToday: false }));
+    user.habits.forEach((h) => { h.isCompletedToday = false; });
   }
   user.lastLogin = new Date();
   await user.save();
