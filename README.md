@@ -24,75 +24,33 @@ Most habit trackers give you a streak counter. Anima gives you stakes. Every com
 
 ## Screenshots
 
-### Auth
-
-<img src=".github/assets/screenshots/auth-login.png" width="340" alt="Login screen with email and password fields"> <img src=".github/assets/screenshots/auth-register.png" width="340" alt="Register form showing the eight avatar species options">
-
-Registration lets you pick one of eight species. The choice determines which evolution branch your creature follows. JWT auth with a 7-day token; bcrypt cost factor 10.
-
-### Dashboard
-
-<img src=".github/assets/screenshots/dashboard-desktop.png" width="700" alt="Full dashboard: sidebar, pet habitat with power stats radar, quest list, and AI recommendations">
-
-Three panels: a 60px icon sidebar with a level badge (`floor(totalXp / 100) + 1`), a habitat panel with the animated pet and HP/XP bars, and a quest list grouped by completion status. The sidebar also surfaces AI-generated habit recommendations ranked by your two weakest stats (no LLM dependency, purely rule-based).
-
-<img src=".github/assets/screenshots/dashboard-mobile.png" width="390" alt="Mobile dashboard at 390px showing the sidebar collapsed and power stats chart">
-
-On mobile the sidebar collapses to icon-only. The power stats radar and AI recommendations stack vertically below the pet habitat.
-
-### Quests
-
-<img src=".github/assets/screenshots/quest-complete.png" width="340" alt="Quest complete modal showing XP and stat rewards before confirming"> <img src=".github/assets/screenshots/new-quest.png" width="340" alt="Create New Habit form with name, category, and difficulty fields">
-
-Completing a quest opens a modal showing the exact XP and stat reward before confirming. Creating a quest assigns a category (STR / INT / SPI) and difficulty (Easy / Medium / Hard), which determines how many XP and coins it awards and how fast it builds the chosen stat.
-
-### Pet Companion Chat
-
-<img src=".github/assets/screenshots/pet-chat.png" width="700" alt="Pet companion chat showing Nova's response with species-specific personality and current stat context">
-
-Each species has a distinct personality injected via system prompt: Ember is a fiery mentor, Aqua is a calm sage, Terra is a grounded nurturer. Current stat values and total XP are included in every Groq call so the pet can comment on your actual progress.
-
-### Adventure Log
-
-<img src=".github/assets/screenshots/adventure-log.png" width="700" alt="Adventure log with three completion entries and AI-generated RPG narration paragraphs">
-
-The adventure log is a flat chronological list of all quest completions across every habit. Groq `llama-3.1-8b-instant` generates a 2-sentence RPG paragraph per entry when the log opens. Narratives are held in React component state and regenerated on each mount.
-
-### Shop
-
-<img src=".github/assets/screenshots/shop.png" width="340" alt="Item Shop potions tab: Health Potion 50c, Super Health Potion 150c, Freeze Streak 100c"> <img src=".github/assets/screenshots/shop-backgrounds.png" width="340" alt="Item Shop backgrounds tab showing six purchasable environments at 200-300 coins each">
-
-Coins earned per completion (`5 * difficulty + min(streak, 7)`) buy health potions, freeze streak tokens, or themed environment backgrounds (Dojo Arena, Ancient Library, Mystic Forest, Volcanic Lair, Ocean Depths, Mountain Peak). Backgrounds render as gradient overlays in the habitat panel and persist to the User's embedded `inventory` subdocument.
-
-### Focus Timer
-
-<img src=".github/assets/screenshots/focus-timer.png" width="700" alt="Focus timer with 25-minute preset, Intellect stat selected, and Start button">
-
-A Pomodoro countdown that routes XP through the same `calculateEvolution()` pipeline as regular habits. On completion the client creates a temporary habit, completes it, then deletes it; a timer session can trigger an evolution. Difficulty scales as `ceil(duration / 20)` capped at 3. State (`targetEndTime`, `selectedStat`, `isPaused`) persists to `localStorage` so a refresh mid-session doesn't lose the countdown.
-
-### Insights
-
-<img src=".github/assets/screenshots/insights.png" width="700" alt="Analytics view with productivity heatmap and weekly XP bar chart broken down by stat category">
-
-Per-day XP aggregation computed server-side from account creation date. The weekly bar chart breaks totals down by stat category (STR, INT, SPI). The heatmap covers every day since registration, useful for spotting consistency gaps before HP starts draining.
-
-### Evolution Guide
-
-<img src=".github/assets/screenshots/guide.png" width="700" alt="Evolution Guide modal showing all nine evolution paths across three species and three stat branches">
-
-The guide overlay maps all nine evolution paths: three species (Ember, Aqua, Terra) each with three stat branches (STR, INT, SPI), with a pure and hybrid fork at Stage 3. A pure build requires the dominant stat to be at least 2x the minimum. `calculateEvolution()` re-evaluates this on every XP mutation including undos.
-
-### Ambient Mode
-
-<img src=".github/assets/screenshots/ambient-mode.png" width="700" alt="Ambient mode: pet in sleep animation floating over a dark starfield">
-
-A distraction-free full-screen view of the pet. Wellness reminder thought bubbles appear after 30 seconds, then recur every 20 to 40 minutes on a randomized delay to reduce habituation.
-
-### Settings
-
-<img src=".github/assets/screenshots/settings.png" width="700" alt="Settings modal Profile tab showing username, avatar, and password change form">
-
-Settings covers profile updates (username, avatar) and password changes. Password update calls `PUT /api/auth/update-password` with bcrypt rehashing at cost factor 10.
+<table>
+  <tr>
+    <td align="center"><img src=".github/assets/screenshots/auth-login.png" width="225" alt="Login screen"><br><sub><b>Login</b></sub></td>
+    <td align="center"><img src=".github/assets/screenshots/auth-register.png" width="225" alt="Register with species selection"><br><sub><b>Register</b></sub></td>
+    <td align="center"><img src=".github/assets/screenshots/quest-complete.png" width="225" alt="Quest completion modal with XP reward"><br><sub><b>Quest Complete</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src=".github/assets/screenshots/new-quest.png" width="225" alt="Create New Habit form"><br><sub><b>New Quest</b></sub></td>
+    <td align="center"><img src=".github/assets/screenshots/pet-chat.png" width="225" alt="Pet companion chat with Nova"><br><sub><b>Pet Chat</b></sub></td>
+    <td align="center"><img src=".github/assets/screenshots/adventure-log.png" width="225" alt="Adventure log with AI RPG narration"><br><sub><b>Adventure Log</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src=".github/assets/screenshots/shop.png" width="225" alt="Item shop potions tab"><br><sub><b>Shop: Potions</b></sub></td>
+    <td align="center"><img src=".github/assets/screenshots/shop-backgrounds.png" width="225" alt="Item shop backgrounds tab"><br><sub><b>Shop: Backgrounds</b></sub></td>
+    <td align="center"><img src=".github/assets/screenshots/focus-timer.png" width="225" alt="Pomodoro focus timer"><br><sub><b>Focus Timer</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src=".github/assets/screenshots/insights.png" width="225" alt="Productivity heatmap and weekly stat chart"><br><sub><b>Insights</b></sub></td>
+    <td align="center"><img src=".github/assets/screenshots/guide.png" width="225" alt="Nine-path evolution guide overlay"><br><sub><b>Evolution Guide</b></sub></td>
+    <td align="center"><img src=".github/assets/screenshots/ambient-mode.png" width="225" alt="Ambient fullscreen pet view"><br><sub><b>Ambient Mode</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src=".github/assets/screenshots/settings.png" width="225" alt="Settings modal profile tab"><br><sub><b>Settings</b></sub></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
 
 ---
 
