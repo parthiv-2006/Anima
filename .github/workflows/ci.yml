@@ -10,6 +10,8 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -62,13 +64,19 @@ jobs:
           console.log('Tests: ' + label);
           EOF
 
-      - name: Update test badge
+      - name: Write badge JSON
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: schneegans/dynamic-badges-action@v1.7.0
-        with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: ${{ secrets.GIST_ID }}
-          filename: anima-tests.json
-          label: tests
-          message: ${{ steps.counts.outputs.label }}
-          color: ${{ steps.counts.outputs.color }}
+        run: |
+          mkdir -p badges
+          printf '{"schemaVersion":1,"label":"tests","message":"%s","color":"%s"}\n' \
+            "${{ steps.counts.outputs.label }}" \
+            "${{ steps.counts.outputs.color }}" > badges/anima-tests.json
+
+      - name: Commit badge update
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add badges/anima-tests.json
+          git diff --staged --quiet || git commit -m "chore: update test badge [skip ci]"
+          git push
