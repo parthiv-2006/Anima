@@ -3,6 +3,7 @@
 A habit tracker where consistency builds a living creature. Each completed habit feeds stat points (Strength, Intellect, Spirit) to a pet that evolves at 100 XP and 500 XP, with nine possible final forms. Miss a day and the pet loses 10% HP.
 
 [![CI](https://github.com/parthiv-2006/Anima/actions/workflows/ci.yml/badge.svg)](https://github.com/parthiv-2006/Anima/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/parthiv-2006/GIST_ID/raw/anima-tests.json)](https://github.com/parthiv-2006/Anima/actions/workflows/ci.yml)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-anima--client.vercel.app-amber?style=flat)](https://anima-client.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-slate?style=flat)](LICENSE)
 
